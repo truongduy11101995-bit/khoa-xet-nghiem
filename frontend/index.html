@@ -1397,9 +1397,11 @@
             <label class="block font-bold text-slate-700 mb-1">Hình thức nghỉ:</label>
             <select id="lr-type" onchange="onLeaveTypeChange()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold">
               <option value="phep_nam">Nghỉ phép năm (12 ngày)</option>
+              <option value="phep_cuoi">Phép cưới (Kết hôn - 3 ngày theo Luật)</option>
               <option value="nghi_bu">Nghỉ bù</option>
               <option value="di_hoc">Đi học / Tập huấn</option>
               <option value="viec_rieng">Việc riêng / Không lương</option>
+              <option value="khac">Lý do khác (tự điền lý do)</option>
             </select>
           </div>
           <div>
@@ -1414,12 +1416,39 @@
 
         <!-- Quota exhausted warning alert inside modal -->
         <div id="lr-quota-warning" class="hidden p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-[11px] font-semibold">
-          ⚠️ Cán bộ này đã hết hoặc không đủ ngày phép năm còn lại. Vui lòng chọn "Nghỉ bù" hoặc "Việc riêng / Không lương".
+          ⚠️ Cán bộ này đã hết hoặc không đủ ngày phép năm còn lại. Vui lòng chọn "Nghỉ bù", "Phép cưới" hoặc "Việc riêng / Không lương".
         </div>
 
         <div>
-          <label class="block font-bold text-slate-700 mb-1">Lý do nghỉ cụ thể:</label>
-          <textarea id="lr-reason" rows="3" placeholder="Nhập lý do ngắn gọn..." class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:bg-white"></textarea>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block font-bold text-slate-700">Lý do nghỉ cụ thể:</label>
+            <span class="text-[10px] text-slate-500 font-medium">Bấm chọn nhanh hoặc tự gõ:</span>
+          </div>
+          <!-- Quick Reason Chips -->
+          <div class="flex flex-wrap gap-1.5 mb-2">
+            <button type="button" onclick="setLeaveReasonQuick('Nghỉ phép cưới (Kết hôn - 3 ngày theo Luật Lao động)', 'phep_cuoi')"
+                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition flex items-center gap-1 shadow-2xs">
+              <span>💍 Phép Cưới (3 Ngày)</span>
+            </button>
+            <button type="button" onclick="setLeaveReasonQuick('Nghỉ bù trực ca', 'nghi_bu')"
+                    class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
+              🔄 Nghỉ Bù
+            </button>
+            <button type="button" onclick="setLeaveReasonQuick('Đi học / Tập huấn nghiệp vụ', 'di_hoc')"
+                    class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition">
+              🎓 Đi Học
+            </button>
+            <button type="button" onclick="setLeaveReasonQuick('Giải quyết việc gia đình', 'phep_nam')"
+                    class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 transition">
+              🏠 Việc Gia Đình
+            </button>
+            <button type="button" onclick="setLeaveReasonQuick('', 'khac')"
+                    class="px-2.5 py-1 rounded-lg text-[11px] font-black bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300 transition flex items-center gap-1 shadow-2xs"
+                    title="Bấm vào để tự gõ lý do riêng của bạn">
+              <span>✏️ Lý Do Khác (Tự Điền)</span>
+            </button>
+          </div>
+          <textarea id="lr-reason" rows="3" placeholder="Nhập lý do cụ thể của bạn tại đây..." class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"></textarea>
         </div>
 
         <div class="pt-2 flex items-center justify-end gap-2">
@@ -1449,11 +1478,23 @@
           <button onclick="closeModal('modal-print-leave')" class="text-slate-300 hover:text-white px-2 py-1">✕</button>
         </div>
       </div>
-      <!-- Edit Mode Notification Bar -->
-      <div class="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center justify-between text-xs text-amber-900 no-print">
+      <!-- Edit Mode Notification Bar & Quick Controls -->
+      <div class="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-900 no-print">
         <div class="flex items-center gap-2">
           <span class="text-base">✏️</span>
-          <span><b>Cho phép sửa chữa trực tiếp trước khi in:</b> Bạn có thể bấm chuột trực tiếp vào bất kỳ dòng chữ nào trên mẫu đơn bên dưới để gõ sửa đổi/bổ sung (Lý do, Thời gian, Số ĐT...) theo yêu cầu rồi mới bấm in.</span>
+          <span><b>Chế độ sửa chữa trực tiếp trước khi in:</b> Nhấp chuột trực tiếp vào bất kỳ dòng chữ nào trên mẫu đơn bên dưới để gõ sửa đổi (Lý do, Thời gian, Số ĐT, Người thay thế...) rồi mới bấm in.</span>
+        </div>
+        <!-- Quick Signer Selector for Admin / KTV Trưởng -->
+        <div class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-lg border border-amber-300 shadow-2xs">
+          <span class="text-[11px] font-bold text-slate-700">Đổi người ký duyệt:</span>
+          <button type="button" onclick="changePrintSigner('CN. Lê Đình Tú', 'Trưởng Khoa', '0911761707')"
+                  class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-100 hover:bg-sky-200 text-sky-900 border border-sky-300 transition">
+            👨‍⚕️ Trưởng Khoa (Tú)
+          </button>
+          <button type="button" onclick="changePrintSigner('CN. Nguyễn Trường Duy', 'KTV Trưởng', '0939112233')"
+                  class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 transition">
+            👨‍💼 KTV Trưởng (Duy)
+          </button>
         </div>
       </div>
       <!-- Printable Page Paper -->

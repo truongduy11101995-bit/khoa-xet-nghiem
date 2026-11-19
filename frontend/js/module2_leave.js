@@ -162,9 +162,11 @@ function renderCalendarGrid(data) {
         const statusBadgeColor = isApproved ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : (isPending ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-slate-200 text-slate-600 line-through');
         const typeLabels = {
           'phep_nam': 'Phép năm',
+          'phep_cuoi': 'Phép cưới (3 ngày)',
           'nghi_bu': 'Nghỉ bù',
           'di_hoc': 'Đi học',
-          'viec_rieng': 'Việc riêng'
+          'viec_rieng': 'Việc riêng',
+          'khac': 'Lý do khác'
         };
 
         html += `
@@ -850,8 +852,8 @@ function renderLeavePrintTemplate(p, saveOriginal = true) {
       <div style="padding-left: 20px; margin-bottom: 10px; line-height: 1.7;">
         <div>${isKhongLuong ? '☒' : '☐'} Không lương</div>
         <div>${isPhepNam ? '☒' : '☐'} Phép năm</div>
-        <div>${isPhepCuoi ? '☒' : '☐'} Phép cưới</div>
-        <div>${isKhac ? '☒' : '☐'} Khác: <u>${khacNote || '.........................................................'}</u> <span style="font-size: 11pt; font-style: italic;">(thai sản, bản thân ốm, con ốm,...)</span></div>
+        <div>${isPhepCuoi ? '☒' : '☐'} Phép cưới (kết hôn - 3 ngày theo Luật Lao động)</div>
+        <div>${isKhac ? '☒' : '☐'} Khác: <u class="editable-field" contenteditable="true" title="Bấm vào để gõ sửa lý do khác">${khacNote || '.........................................................'}</u> <span style="font-size: 11pt; font-style: italic;">(nghỉ bù, đi học, con ốm, thai sản...)</span></div>
       </div>
 
       <div style="margin-bottom: 6px;">
@@ -879,15 +881,15 @@ function renderLeavePrintTemplate(p, saveOriginal = true) {
       <table style="width: 100%; border: none; margin-bottom: 40px;">
         <tr style="border: none;">
           <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
-            <div style="font-weight: bold;">Trưởng bộ phận/Khoa, phòng</div>
-            <div style="font-size: 10pt; font-style: italic; margin-bottom: 50px;">(Ký và ghi rõ họ tên)</div>
-            <div style="font-weight: bold;">${p.manager_name || 'CN. Lê Đình Tú'}</div>
-            <div style="font-size: 10pt; color: #475569; margin-top: 3px;">(ĐT: 0911761707)</div>
+            <div id="print-signer-title" style="font-weight: bold;" class="editable-field" contenteditable="true" title="Bấm vào để sửa chức danh">Trưởng bộ phận/Khoa, phòng</div>
+            <div style="font-size: 10pt; font-style: italic; margin-bottom: 45px;">(Ký và ghi rõ họ tên)</div>
+            <div id="print-signer-name" style="font-weight: bold;" class="editable-field" contenteditable="true" title="Bấm vào để sửa họ tên người ký duyệt">${p.manager_name || 'CN. Lê Đình Tú'}</div>
+            <div id="print-signer-phone" style="font-size: 10pt; color: #475569; margin-top: 3px;" class="editable-field" contenteditable="true" title="Bấm vào để sửa SĐT">(ĐT: ${p.manager_phone || '0911761707'})</div>
           </td>
           <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
             <div style="font-weight: bold;">Người làm đơn</div>
-            <div style="font-size: 10pt; font-style: italic; margin-bottom: 50px;">(Ký và ghi rõ họ tên)</div>
-            <div style="font-weight: bold;">${p.full_name}</div>
+            <div style="font-size: 10pt; font-style: italic; margin-bottom: 45px;">(Ký và ghi rõ họ tên)</div>
+            <div style="font-weight: bold;" class="editable-field" contenteditable="true" title="Bấm vào để sửa họ tên người làm đơn">${p.full_name}</div>
           </td>
         </tr>
       </table>

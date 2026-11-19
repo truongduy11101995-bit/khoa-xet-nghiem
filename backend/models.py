@@ -21,7 +21,7 @@ class ScheduleBatchAssignRequest(BaseModel):
 
 class LeaveCreateRequest(BaseModel):
     leave_date: str
-    leave_type: str = Field(..., pattern="^(phep_nam|nghi_bu|di_hoc|viec_rieng)$")
+    leave_type: str = Field(..., pattern="^(phep_nam|nghi_bu|di_hoc|viec_rieng|phep_cuoi|khac)$")
     shift: str = Field(default="all", pattern="^(all|sang|chieu)$")
     reason: str
 

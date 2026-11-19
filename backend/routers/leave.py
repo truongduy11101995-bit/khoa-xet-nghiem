@@ -514,15 +514,27 @@ def get_leave_print_data(
     today = datetime.date.today()
     shift_val = d.get("shift", "all")
     leave_day_str = leave_dt.strftime("%d/%m/%Y")
+    l_type = d.get("leave_type", "phep_nam")
+
+    type_suffix = ""
+    if l_type == "phep_cuoi":
+        type_suffix = " (Phép cưới / Kết hôn)"
+    elif l_type == "nghi_bu":
+        type_suffix = " (Nghỉ bù)"
+    elif l_type == "di_hoc":
+        type_suffix = " (Đi học / Tập huấn)"
+
     if shift_val == "all":
-        shift_text = "Cả ngày (07h00 - 11h00 và 13h00 - 17h00)"
-        duration_text = f"01 ngày, ngày {leave_day_str} (Từ 07h00 - 11h00 và 13h00 - 17h00)"
+        shift_text = f"Cả ngày (07h00 - 11h00 & 13h00 - 17h00){type_suffix}"
+        duration_text = f"01 ngày{type_suffix}, ngày {leave_day_str} (Từ 07h00 - 11h00 và 13h00 - 17h00)"
     elif shift_val == "sang":
-        shift_text = "Buổi sáng (07h00 - 11h00)"
-        duration_text = f"0.5 ngày (Buổi sáng: 07h00 - 11h00), ngày {leave_day_str}"
+        shift_text = f"Buổi sáng (07h00 - 11h00){type_suffix}"
+        duration_text = f"0.5 ngày (Buổi sáng: 07h00 - 11h00){type_suffix}, ngày {leave_day_str}"
     else:
-        shift_text = "Buổi chiều (13h00 - 17h00)"
-        duration_text = f"0.5 ngày (Buổi chiều: 13h00 - 17h00), ngày {leave_day_str}"
+        shift_text = f"Buổi chiều (13h00 - 17h00){type_suffix}"
+        duration_text = f"0.5 ngày (Buổi chiều: 13h00 - 17h00){type_suffix}, ngày {leave_day_str}"
+
+    assigned_manager = d.get("reviewer_name") if d.get("reviewer_name") else "CN. Lê Đình Tú"
 
     return {
         "success": True,
@@ -544,7 +556,7 @@ def get_leave_print_data(
             "today_day": f"{today.day:02d}",
             "today_month": f"{today.month:02d}",
             "today_year": f"{today.year}",
-            "manager_name": "CN. Lê Đình Tú",
+            "manager_name": assigned_manager,
             "manager_phone": "0911761707"
         }
     }
