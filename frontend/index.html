@@ -1,0 +1,2441 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QUẢN LÝ XÉT NGHIỆM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="icon" type="image/png" href="/static/assets/logo.png">
+</head>
+<body class="bg-slate-100 min-h-screen flex flex-col text-slate-800">
+
+  <!-- ================= TOP HEADER ================= -->
+  <header class="bg-white border-b border-sky-100 shadow-sm sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between">
+      <!-- Left: Logo & Hospital Info -->
+      <div class="flex items-center space-x-3">
+        <img src="/static/assets/logo.png" alt="Logo BV Thiên Ân" class="h-12 w-12 object-contain rounded-full border border-sky-200 p-0.5 bg-white shadow-xs shrink-0">
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-wider text-sky-800">Sở Y Tế Tỉnh Vĩnh Long</div>
+          <div class="text-sm sm:text-base font-extrabold text-sky-950 uppercase leading-tight">
+            Bệnh Viện Đa Khoa Thiên Ân - Viễn Đông
+          </div>
+          <div class="text-[11px] font-semibold text-teal-700 uppercase">
+            Khoa Xét Nghiệm • Quản Lý Chất Lượng (QĐ 2429/QĐ-BYT)
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Clock, User Profile & Actions -->
+      <div class="flex items-center space-x-3">
+        <!-- Live Clock & LAN storage badge -->
+        <div class="hidden md:flex flex-col items-end">
+          <div id="live-clock" class="text-xs font-bold text-slate-700 font-mono">--:--:--</div>
+          <div id="storage-status-badge" class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1 mt-0.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="storage-status-text">Ổ D:\KHOA_XET_NGHIEM_DATA\</span>
+          </div>
+        </div>
+
+        <!-- User Info Badge -->
+        <div class="flex items-center space-x-2 pl-3 border-l border-slate-200">
+          <div class="text-right hidden sm:block">
+            <div id="user-fullname" class="text-xs font-bold text-slate-900 leading-tight">--</div>
+            <div id="user-title" class="text-[10px] text-slate-500 truncate max-w-[150px]">--</div>
+          </div>
+          <span id="user-role-badge" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-700">--</span>
+
+          <!-- Dropdown action buttons -->
+          <a id="btn-ip-admin" href="/admin/ip-whitelist" title="Cấu hình IP Wi-Fi cơ quan (Admin)"
+             class="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition hidden">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/>
+            </svg>
+          </a>
+          <button onclick="openChangePasswordModal()" title="Đổi mật khẩu"
+                  class="p-1.5 text-slate-500 hover:text-sky-700 hover:bg-sky-50 rounded-lg transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+          </button>
+          <button onclick="handleLogout()" title="Đăng xuất"
+                  class="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= KPI QUICK METRICS & ALERT BANNER ================= -->
+  <div class="bg-gradient-to-r from-sky-800 via-sky-700 to-teal-800 text-white shadow py-2.5 px-4 sm:px-6">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
+      <!-- KPI stats cards -->
+      <div class="flex items-center gap-3 sm:gap-6 text-xs flex-wrap">
+        <div class="flex items-center gap-1.5">
+          <span class="text-sky-200">Nhân sự khoa:</span>
+          <span id="stat-active-staff" class="font-extrabold bg-white/15 px-2 py-0.5 rounded">4/4 cán bộ</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-sky-200">Phân công hôm nay:</span>
+          <span id="stat-today-sched" class="font-extrabold bg-white/15 px-2 py-0.5 rounded">-- vị trí</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-sky-200">Nghỉ hôm nay:</span>
+          <span id="stat-today-leaves" class="font-extrabold bg-white/15 px-2 py-0.5 rounded">0 người</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-sky-200">Biểu mẫu 2429:</span>
+          <span id="stat-total-docs" class="font-extrabold bg-white/15 px-2 py-0.5 rounded">--</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-sky-200">Kho hóa chất:</span>
+          <span id="stat-total-inventory" class="font-extrabold bg-white/15 px-2 py-0.5 rounded">29 mục</span>
+        </div>
+      </div>
+
+      <!-- Current User Today Shift Highlight -->
+      <div id="user-today-assignment" class="flex items-center gap-1.5">
+        <!-- Injected by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Staffing Alert Banner (Smart Warning for Today >= 2 staff leave) -->
+  <div id="global-staffing-alert" class="hidden bg-red-600 text-white py-2 px-4 shadow-sm text-xs font-bold animate-pulse text-center">
+    ⚠️ CẢNH BÁO NHÂN LỰC: Hôm nay có từ 2 nhân sự trở lên vắng mặt! KTV Trưởng / Trưởng khoa vui lòng cân đối gấp các bàn lấy máu và phòng máy!
+  </div>
+
+  <!-- ================= NAVIGATION TABS ================= -->
+  <div class="bg-white border-b border-slate-200 shadow-sm sticky top-[60px] z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between overflow-x-auto py-2">
+      <nav class="flex items-center space-x-1 sm:space-x-2">
+        <button id="tab-schedule" onclick="switchModule('schedule')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm bg-sky-700 text-white shadow-md transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+          <span>1. Phân Công Vị Trí & Lịch Trực</span>
+        </button>
+
+        <button id="tab-leave" onclick="switchModule('leave')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <span>2. Lịch Tháng & Nghỉ Phép</span>
+        </button>
+
+        <button id="tab-documents" onclick="switchModule('documents')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          <span>3. Kho Hồ Sơ, Biểu Mẫu & Mục Lục 10 Cuốn (2429 & ATSH Cấp II)</span>
+        </button>
+
+        <button id="tab-inventory" onclick="switchModule('inventory')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          <span>4. Quản Lý Kho Hóa Chất & Vật Tư</span>
+        </button>
+
+        <button id="tab-profiles" onclick="switchModule('profiles')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          <span>5. Hồ Sơ Cán Bộ Nhân Viên (04 Nhân Sự)</span>
+        </button>
+
+        <button id="tab-environment" onclick="switchModule('environment')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span>6. Sổ Nhiệt Độ & Môi Trường (BM.MT.01)</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ================= MAIN CONTENT VIEWS ================= -->
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- ================= VIEW 1: MODULE 1 SCHEDULE ================= -->
+    <section id="view-schedule" class="space-y-4">
+      <!-- Toolbar -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+        <!-- Week navigation -->
+        <div class="flex items-center gap-2">
+          <button onclick="prevWeek()" class="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 transition" title="Tuần trước">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <button onclick="currentWeek()" class="px-3 py-1.5 rounded-xl border border-sky-200 bg-sky-50 text-sky-800 text-xs font-bold hover:bg-sky-100 transition">
+            Tuần Này
+          </button>
+          <button onclick="nextWeek()" class="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 transition" title="Tuần sau">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+          <span id="schedule-date-range-text" class="text-sm font-bold text-slate-800 ml-2">--</span>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex items-center gap-2">
+          <div class="admin-only hidden flex items-center gap-2">
+            <button onclick="copyWeekToNext()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition flex items-center gap-1.5 shadow-sm" title="Sao chép lịch tuần này sang tuần sau">
+              <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              <span>Sao Chép Tuần Sau</span>
+            </button>
+          </div>
+
+          <button onclick="exportScheduleToExcel()" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Xuất Excel (.xlsx)</span>
+          </button>
+
+          <button onclick="printWeeklySchedule()" class="px-3 py-2 bg-sky-700 hover:bg-sky-800 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span>In Bảng Phân Công</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Schedule Table Container -->
+      <div id="schedule-table-container">
+        <!-- Injected by module1_schedule.js -->
+      </div>
+    </section>
+
+    <!-- ================= VIEW 2: MODULE 2 LEAVE CALENDAR ================= -->
+    <section id="view-leave" class="hidden space-y-4">
+      <!-- Month Navigation & Top Action -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <button onclick="prevMonth()" class="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 transition" title="Tháng trước">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <span id="calendar-month-title" class="text-base font-extrabold text-slate-900 mx-2 uppercase">Tháng -- Năm ----</span>
+          <button onclick="nextMonth()" class="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 transition" title="Tháng sau">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="printBlankOfficialLeaveApplication()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition flex items-center gap-1.5 shadow-sm" title="In đơn xin nghỉ phép mẫu trắng chuẩn bệnh viện">
+            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span>In Mẫu Đơn Trắng</span>
+          </button>
+
+          <button onclick="openLeaveRequestModal()" class="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>Đăng Ký Xin Nghỉ Phép</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Employee Annual Leave Balances (Định Mức 12 Ngày Phép/Năm) -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div>
+            <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Theo Dõi Số Phép Năm Cán Bộ Nhân Viên (Định Mức: 12 Ngày Phép / Năm)</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Tiêu chuẩn 12 ngày phép năm/cán bộ • Tự động trừ phép khi được duyệt • Cảnh báo khi hết phép</p>
+          </div>
+          <div id="my-leave-balance-badge" class="px-3.5 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-2 self-start sm:self-auto">
+            <span>Phép năm của bạn:</span>
+            <span id="my-leave-remaining-text" class="text-sm text-emerald-700 font-extrabold">12 / 12 ngày</span>
+          </div>
+        </div>
+
+        <!-- 4 Staff Leave Balance Cards Container -->
+        <div id="leave-balances-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+          <!-- Injected by module2_leave.js -->
+        </div>
+      </div>
+
+      <!-- Admin Leave Approval Section (Trưởng Khoa & KTV Trưởng Phê Duyệt & Trừ Phép) -->
+      <div id="admin-leave-approval-section" class="bg-white p-5 rounded-2xl border-2 border-amber-300 shadow-sm space-y-4 admin-only">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                <span>Duyệt Nghỉ Phép & Trừ Phép Năm (Trưởng Khoa / KTV Trưởng)</span>
+                <span id="admin-pending-count-badge" class="px-2 py-0.5 rounded-full text-xs font-black bg-amber-100 text-amber-800 border border-amber-200">0 đơn chờ</span>
+              </h3>
+              <p class="text-xs text-slate-500">Phê duyệt đơn xin nghỉ của cán bộ nhân viên toàn khoa • Tự động trừ vào quỹ 12 ngày phép năm</p>
+            </div>
+          </div>
+
+          <!-- Status Filters -->
+          <div class="flex items-center gap-1.5 self-start sm:self-auto bg-slate-100 p-1 rounded-xl text-xs font-bold">
+            <button onclick="setAdminLeaveFilter('pending')" id="admin-filter-pending" class="px-3 py-1.5 rounded-lg bg-white text-slate-900 shadow-xs transition">Chờ Duyệt</button>
+            <button onclick="setAdminLeaveFilter('all')" id="admin-filter-all" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Tất Cả</button>
+            <button onclick="setAdminLeaveFilter('approved')" id="admin-filter-approved" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Đã Duyệt</button>
+            <button onclick="setAdminLeaveFilter('rejected')" id="admin-filter-rejected" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Từ Chối</button>
+          </div>
+        </div>
+
+        <!-- Table Container -->
+        <div id="admin-leave-requests-table">
+          <!-- Injected by module2_leave.js -->
+        </div>
+      </div>
+
+      <!-- Smart Warnings Area (>=2 staff leave on same day) -->
+      <div id="calendar-month-warnings" class="hidden">
+        <!-- Injected by module2_leave.js -->
+      </div>
+
+      <!-- Calendar View -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <!-- Weekday Headers -->
+        <div class="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-extrabold uppercase text-slate-600 bg-slate-50 py-2.5 rounded-xl">
+          <div class="text-sky-800">Thứ Hai</div>
+          <div class="text-sky-800">Thứ Ba</div>
+          <div class="text-sky-800">Thứ Tư</div>
+          <div class="text-sky-800">Thứ Năm</div>
+          <div class="text-sky-800">Thứ Sáu</div>
+          <div class="text-amber-800">Thứ Bảy</div>
+          <div class="text-red-800">Chủ Nhật</div>
+        </div>
+
+        <!-- 7-column Calendar Grid -->
+        <div id="leave-calendar-grid" class="grid grid-cols-7 gap-2">
+          <!-- Injected by module2_leave.js -->
+        </div>
+      </div>
+
+      <!-- My Leave History Table -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+          <svg class="w-4 h-4 text-sky-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Lịch Sử Đăng Ký Nghỉ Của Tôi</span>
+        </h3>
+        <div id="my-leave-history-table">
+          <!-- Injected by module2_leave.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VIEW 3: UNIFIED HUB (10 CUỐN HỒ SƠ 2429 + 523 TỆP TIN Ổ D + BIỂU MẪU) ================= -->
+    <section id="view-documents" class="hidden space-y-6">
+      <!-- 1. Top Master Banner with Hospital Branding & Live Data -->
+      <div class="bg-gradient-to-r from-sky-950 via-blue-900 to-indigo-950 text-white rounded-2xl p-6 sm:p-7 shadow-lg relative overflow-hidden border border-sky-800/40">
+        <div class="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
+          <svg class="w-72 h-72 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        </div>
+
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div class="flex items-start gap-4">
+            <img src="/static/assets/logo.png" alt="Logo BV Thiên Ân" class="w-16 h-16 sm:w-20 sm:h-20 object-contain rounded-full bg-white p-1 border-2 border-amber-400 shadow-md shrink-0">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400/30 text-sky-200 text-xs font-bold uppercase tracking-wider mb-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                KHOA XÉT NGHIỆM • TRUNG TÂM QUẢN LÝ CHẤT LƯỢNG TOÀN DIỆN
+              </div>
+              <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+                KHO HỒ SƠ, BIỂU MẪU & MỤC LỤC 10 CUỐN (QĐ 2429 & ATSH CẤP II)
+              </h2>
+              <p class="text-xs sm:text-sm text-sky-100/90 mt-1.5 leading-relaxed max-w-3xl">
+                Tích hợp toàn văn <strong class="text-amber-300">147 tài liệu chuẩn hóa (DM.TONG.00)</strong> và kho dữ liệu thực địa <strong class="text-emerald-300">523 tệp tin chuyên đề</strong> tại thư mục máy chủ <code>D:\01_TRON_BO_HO_SO_KHOA_XET_NGHIEM_TOAN_DIEN_2026</code>.
+              </p>
+            </div>
+          </div>
+
+          <!-- Quick KPI Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-2.5 shrink-0">
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center">
+              <div id="stat-total-binders" class="text-lg sm:text-xl font-black text-amber-300">10 Cuốn</div>
+              <div class="text-[10px] font-semibold text-sky-200 uppercase mt-0.5">11 Tập Bìa Còng</div>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center">
+              <div id="stat-total-docs" class="text-lg sm:text-xl font-black text-emerald-300">147</div>
+              <div class="text-[10px] font-semibold text-sky-200 uppercase mt-0.5">Tài Liệu Toàn Văn</div>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center">
+              <div id="stat-total-disk-files" class="text-lg sm:text-xl font-black text-sky-300">523 Files</div>
+              <div class="text-[10px] font-semibold text-sky-200 uppercase mt-0.5">12 Nhóm Ổ D:\</div>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center">
+              <div class="text-lg sm:text-xl font-black text-teal-300">100%</div>
+              <div class="text-[10px] font-semibold text-sky-200 uppercase mt-0.5">Chuẩn BYT & SYT</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master Download Action Bar -->
+        <div class="relative z-10 mt-5 pt-4 border-t border-white/15 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-bold text-sky-200 uppercase tracking-wide">Tải hồ sơ gốc:</span>
+            <a href="/static/assets/docs_10_cuon/Tron_Bo_10_Cuon_Ho_So_Khoa_Xet_Nghiem_BV_Thien_An_Vien_Dong.zip" download 
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Trọn Bộ 10 Cuốn (.ZIP - 11.7 MB)</span>
+            </a>
+            <a href="/static/assets/docs_10_cuon/Tron_Bo_10_Cuon_Ho_So_QLCL_2429_Va_ATSH_Khoa_Xet_Nghiem_All_In_One.docx" download 
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold border border-white/25 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span>Bản Toàn Văn All-In-One (.DOCX - 1.2 MB)</span>
+            </a>
+            <a href="/static/assets/docs_10_cuon/Cuon_00_Bang_Thong_Ke_Tong_Hop_147_Tai_Lieu_Chuan_Hoa_Khoa_XN.docx" download
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-sky-100 text-xs font-semibold border border-white/20 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              <span>Mục Lục Cuốn 00 (.DOCX)</span>
+            </a>
+          </div>
+          <div class="text-[11px] text-sky-200/80 font-mono">
+            Đồng bộ: 523 tệp tin ổ D: • 147 tài liệu toàn văn • Sẵn sàng in ấn A4
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Sub-Tabs Navigation Bar (Modern Pill Tabs) -->
+      <div class="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between overflow-x-auto gap-2">
+        <div class="flex items-center space-x-1.5 sm:space-x-2">
+          <!-- Sub-Tab 1 Button -->
+          <button id="doc-subtab-btn-catalog" onclick="switchDocSubTab('catalog')"
+                  class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-sky-700 text-white shadow-sm transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            <span>1. Mục Lục 10 Cuốn & 147 Tài Liệu (DM.TONG.00)</span>
+          </button>
+
+          <!-- Sub-Tab 2 Button -->
+          <button id="doc-subtab-btn-fulltree" onclick="switchDocSubTab('fulltree')"
+                  class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+            <span>2. Toàn Bộ 523 Tệp Tin Hồ Sơ (Ổ D:\)</span>
+            <span id="badge-fulltree-total" class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-extrabold">523</span>
+          </button>
+
+          <!-- Sub-Tab 3 Button -->
+          <button id="doc-subtab-btn-forms" onclick="switchDocSubTab('forms')"
+                  class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>3. Phiếu Kết Quả, Hẹn Trả & Bìa In Sẵn</span>
+          </button>
+
+          <!-- Sub-Tab 4 Button -->
+          <button id="doc-subtab-btn-downloads" onclick="switchDocSubTab('downloads')"
+                  class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>4. Tải Trọn Bộ & Lưu Trữ Dự Phòng</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. SUB-TAB 1: MỤC LỤC 10 CUỐN & 147 TÀI LIỆU CHUẨN HÓA (DM.TONG.00) -->
+      <div id="doc-subtab-content-catalog" class="space-y-4">
+        <!-- Controls & Filter Toolbar -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+            <!-- Search input -->
+            <div class="relative flex-1">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              </div>
+              <input type="text" id="catalog-search-input" 
+                placeholder="Tìm nhanh theo mã số (ST.QLCL.01, QT.ATSH, BM.TD...), tên quy trình, sổ sách..."
+                class="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition">
+            </div>
+
+            <!-- Dropdown Filter By Binder -->
+            <div class="w-full lg:w-72">
+              <select id="catalog-binder-select" 
+                class="w-full py-2.5 px-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-600 font-medium text-slate-700">
+                <option value="all">Tất cả Cuốn Hồ sơ (Cuốn 01 → Cuốn 10)</option>
+              </select>
+            </div>
+
+            <!-- View Mode Toggle -->
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200/80 self-end lg:self-auto">
+              <button id="btn-view-catalog-table" 
+                class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-sky-700 text-white shadow-xs">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                <span>Bảng 147 Tài Liệu</span>
+              </button>
+              <button id="btn-view-binders-grid" 
+                class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                <span>10 Bìa Còng (Grid)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Group Pills Filter -->
+          <div class="pt-2 border-t border-slate-100">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Phân loại theo 7 nhóm chuẩn:</div>
+            <div id="catalog-group-pills" class="flex flex-wrap gap-1.5">
+              <!-- Injected by module5_catalog.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 1: TABLE OF 147 DOCUMENTS -->
+        <div id="catalog-table-container" class="space-y-3">
+          <div class="flex items-center justify-between text-xs px-1">
+            <span id="catalog-results-count" class="font-bold text-slate-700">Đang tải danh mục...</span>
+            <span class="text-slate-500">Nhấp vào bất kỳ dòng nào để xem toàn văn, bảng kiểm và in chuẩn A4</span>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    <th class="py-3 px-3 text-center w-12">STT</th>
+                    <th class="py-3 px-3 w-36">Mã Tài Liệu</th>
+                    <th class="py-3 px-4">Tên Tài Liệu / Quy Trình / Biểu Mẫu / Poster</th>
+                    <th class="py-3 px-3 w-40">Vị Trí Lưu Trữ</th>
+                    <th class="py-3 px-3 text-center w-24">Phiên Bản</th>
+                    <th class="py-3 px-3 text-right w-44">Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody id="catalog-docs-tbody" class="divide-y divide-slate-100 text-xs sm:text-sm">
+                  <!-- Injected by module5_catalog.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 2: 10 BINDERS GRID CONTAINER -->
+        <div id="catalog-binders-container" class="hidden space-y-4">
+          <div class="flex items-center justify-between text-xs px-1">
+            <span class="font-bold text-slate-700">Trọn bộ 10 Cuốn Hồ Sơ Quản Lý Chất Lượng & ATSH Cấp II (11 Tập Bìa Còng 5cm - 7cm)</span>
+            <span class="text-slate-500">Nhấp "Mở Danh Mục Cuốn" để lọc tài liệu</span>
+          </div>
+          <div id="catalog-binders-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Injected by module5_catalog.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. SUB-TAB 2: TOÀN BỘ 523 TỆP TIN HỒ SƠ TOÀN DIỆN (Ổ D:\) -->
+      <div id="doc-subtab-content-fulltree" class="hidden space-y-4">
+        <!-- Full-Tree Toolbar: Search, Ext Filter, Expand/Collapse -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+            <!-- Live Search -->
+            <div class="relative flex-1">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              </div>
+              <input type="text" id="fulltree-search-input" oninput="handleFullTreeSearch(this.value)"
+                     placeholder="Tìm nhanh trong 523 file (tên quy trình, hóa chất, sinh phẩm, kiểm định, IQC...)"
+                     class="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition">
+            </div>
+
+            <!-- Expand / Collapse All -->
+            <div class="flex items-center gap-2">
+              <button onclick="toggleAllFullTreeGroups(true)" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition flex items-center gap-1.5 shadow-xs" title="Mở rộng tất cả 12 nhóm chuyên đề">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <span>Mở Tất Cả</span>
+              </button>
+              <button onclick="toggleAllFullTreeGroups(false)" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition flex items-center gap-1.5 shadow-xs" title="Thu gọn tất cả nhóm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                <span>Thu Gọn</span>
+              </button>
+              <button onclick="loadFullTree(true)" class="px-3 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-bold rounded-xl border border-sky-200 transition flex items-center gap-1.5 shadow-xs" title="Quét làm mới dữ liệu từ ổ D:">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>Làm Mới</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- File Extension Filters -->
+          <div class="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1">Lọc định dạng:</span>
+              <button id="btn-tree-filter-all" onclick="setFullTreeExtFilter('all')" class="px-3 py-1 rounded-lg text-xs font-bold bg-sky-700 text-white transition">Tất Cả (<span id="ft-cnt-all">523</span>)</button>
+              <button id="btn-tree-filter-docx" onclick="setFullTreeExtFilter('docx')" class="px-3 py-1 rounded-lg text-xs font-semibold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition">Word .docx (<span id="ft-cnt-docx">--</span>)</button>
+              <button id="btn-tree-filter-xlsx" onclick="setFullTreeExtFilter('xlsx')" class="px-3 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition">Excel .xlsx (<span id="ft-cnt-xlsx">--</span>)</button>
+              <button id="btn-tree-filter-pdf" onclick="setFullTreeExtFilter('pdf')" class="px-3 py-1 rounded-lg text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition">PDF .pdf (<span id="ft-cnt-pdf">--</span>)</button>
+            </div>
+            <div id="fulltree-stats-text" class="text-xs text-slate-500 font-mono">
+              Đang tải danh sách tệp tin ổ D:...
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion Groups Container -->
+        <div id="fulltree-accordion-container" class="space-y-3">
+          <!-- Injected dynamically by module3_documents.js -->
+        </div>
+      </div>
+
+      <!-- 5. SUB-TAB 3: PHIẾU KẾT QUẢ, HẸN TRẢ & BÌA IN SẴN -->
+      <div id="doc-subtab-content-forms" class="hidden space-y-4">
+        <!-- Search & Category Tabs Toolbar -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="relative w-full md:w-96">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              </div>
+              <input type="text" id="doc-search-input" oninput="handleDocumentSearch(this.value)"
+                     placeholder="Tìm nhanh theo mã hiệu, tên file (2429, nhiệt độ, đông máu...)"
+                     class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent transition">
+            </div>
+
+            <!-- Admin Buttons: Upload & Sync from D: -->
+            <div class="admin-only hidden flex items-center gap-2 w-full md:w-auto justify-end">
+              <button onclick="syncDocumentsFromDisk()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition flex items-center gap-1.5 shadow-sm" title="Quét tệp tin mới trực tiếp từ ổ D">
+                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>Đồng Bộ Ổ D:\</span>
+              </button>
+              <button onclick="openUploadDocModal()" class="px-3 py-2 bg-sky-700 hover:bg-sky-800 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                <span>Tải Lên Biểu Mẫu Mới</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Category Sub-Tabs -->
+          <div class="flex items-center space-x-2 border-t border-slate-100 pt-2 overflow-x-auto">
+            <button id="doc-tab-all" onclick="setDocumentCategory('all')"
+                    class="flex items-center gap-1.5 px-3 py-1.5 border-b-2 border-sky-700 text-sky-800 font-bold text-xs uppercase tracking-wider">
+              <span>Tất Cả Biểu Mẫu</span>
+              <span id="doc-count-all" class="px-1.5 py-0.2 rounded-full text-[10px] bg-sky-100 text-sky-800">--</span>
+            </button>
+
+            <button id="doc-tab-phieu-kq" onclick="setDocumentCategory('phieu_kq_hen')"
+                    class="flex items-center gap-1.5 px-3 py-1.5 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-semibold text-xs uppercase tracking-wider">
+              <span>1. Phiếu Kết Quả & Phiếu Hẹn</span>
+              <span id="doc-count-phieu-kq" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600">--</span>
+            </button>
+
+            <button id="doc-tab-so-sach-2429" onclick="setDocumentCategory('so_sach_2429')"
+                    class="flex items-center gap-1.5 px-3 py-1.5 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-semibold text-xs uppercase tracking-wider">
+              <span>2. Sổ Sách & QLCL (2429)</span>
+              <span id="doc-count-so-sach-2429" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600">--</span>
+            </button>
+
+            <button id="doc-tab-bia-hc" onclick="setDocumentCategory('bia_hanh_chinh')"
+                    class="flex items-center gap-1.5 px-3 py-1.5 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-semibold text-xs uppercase tracking-wider">
+              <span>3. Bìa Hồ Sơ & Hành Chính</span>
+              <span id="doc-count-bia-hc" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600">--</span>
+            </button>
+
+            <button id="doc-tab-ho-so-10-cuon" onclick="setDocumentCategory('ho_so_10_cuon')"
+                    class="flex items-center gap-1.5 px-3 py-1.5 border-b-2 border-transparent text-emerald-600 hover:text-emerald-800 font-bold text-xs uppercase tracking-wider">
+              <span>4. Trọn Bộ 10 Cuốn Hồ Sơ (.docx & .zip)</span>
+              <span id="doc-count-ho-so-10-cuon" class="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-100 text-emerald-800">14</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Documents Grid Container -->
+        <div id="documents-list-container">
+          <!-- Injected by module3_documents.js -->
+        </div>
+      </div>
+
+      <!-- 6. SUB-TAB 4: TẢI TRỌN BỘ & LƯU TRỮ DỰ PHÒNG -->
+      <div id="doc-subtab-content-downloads" class="hidden space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Download Card 1: Full ZIP -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div class="flex items-start gap-4">
+              <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-100 text-emerald-600 shrink-0">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+              </div>
+              <div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800">GÓI TRỌN BỘ 10 CUỐN (.ZIP)</span>
+                <h4 class="text-base font-extrabold text-slate-900 mt-1">Trọn Bộ 10 Cuốn Hồ Sơ Khoa Xét Nghiệm</h4>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                  Bao gồm 14 file Word độc lập (.docx) chuẩn hóa 100% cho BVĐK Thiên Ân. Sẵn sàng giải nén và chỉnh sửa hoặc in ấn bìa còng.
+                </p>
+                <div class="mt-2 text-xs font-mono text-slate-400">Dung lượng: 11.7 MB • Cập nhật: 2026</div>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end">
+              <a href="/static/assets/docs_10_cuon/Tron_Bo_10_Cuon_Ho_So_Khoa_Xet_Nghiem_BV_Thien_An_Vien_Dong.zip" download
+                 class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span>Tải Trọn Bộ ZIP (11.7 MB)</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Download Card 2: All-in-One Word -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div class="flex items-start gap-4">
+              <div class="p-3 bg-sky-50 rounded-2xl border border-sky-100 text-sky-700 shrink-0">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              </div>
+              <div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-sky-100 text-sky-800">ALL-IN-ONE (.DOCX)</span>
+                <h4 class="text-base font-extrabold text-slate-900 mt-1">Toàn Văn 10 Cuốn Hồ Sơ Quản Lý Chất Lượng</h4>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                  Một tệp tin Word duy nhất tổng hợp toàn văn nội dung quy chuẩn theo QĐ 2429/QĐ-BYT và ATSH Cấp II, tiện tra cứu hoặc chỉnh sửa tập trung.
+                </p>
+                <div class="mt-2 text-xs font-mono text-slate-400">Dung lượng: 1.2 MB • Định dạng Microsoft Word</div>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end">
+              <a href="/static/assets/docs_10_cuon/Tron_Bo_10_Cuon_Ho_So_QLCL_2429_Va_ATSH_Khoa_Xet_Nghiem_All_In_One.docx" download
+                 class="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span>Tải Bản All-In-One (.DOCX)</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Download Card 3: Cuốn 00 Bảng thống kê -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div class="flex items-start gap-4">
+              <div class="p-3 bg-blue-50 rounded-2xl border border-blue-100 text-blue-700 shrink-0">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+              </div>
+              <div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-blue-100 text-blue-800">MỤC LỤC TRUNG TÂM (DM.TONG.00)</span>
+                <h4 class="text-base font-extrabold text-slate-900 mt-1">Cuốn 00 - Bảng Thống Kê Tổng Hợp 147 Tài Liệu</h4>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                  Bảng tổng mục lục chính thức dùng để kẹp vào đầu tủ hồ sơ hoặc trình đoàn kiểm tra Sở Y Tế, gồm mã tài liệu, vị trí lưu trữ và phiên bản.
+                </p>
+                <div class="mt-2 text-xs font-mono text-slate-400">Dung lượng: ~120 KB • Định dạng Word</div>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end">
+              <a href="/static/assets/docs_10_cuon/Cuon_00_Bang_Thong_Ke_Tong_Hop_147_Tai_Lieu_Chuan_Hoa_Khoa_XN.docx" download
+                 class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span>Tải Cuốn 00 (.DOCX)</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Download Card 4: Tổng quan dữ liệu ổ D -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div class="flex items-start gap-4">
+              <div class="p-3 bg-purple-50 rounded-2xl border border-purple-100 text-purple-700 shrink-0">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7c0-2-1.5-3-3.5-3h-9C5.5 4 4 5 4 7z"/></svg>
+              </div>
+              <div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-purple-100 text-purple-800">MÁY CHỦ CỤC BỘ (Ổ D:\)</span>
+                <h4 class="text-base font-extrabold text-slate-900 mt-1">Hệ Thống 523 Tệp Tin Hồ Sơ Toàn Diện 2026</h4>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                  Toàn bộ 12 chuyên đề được lưu trữ an toàn tại máy chủ Khoa: <code>D:\01_TRON_BO_HO_SO_KHOA_XET_NGHIEM_TOAN_DIEN_2026</code>.
+                </p>
+                <div class="mt-2 text-xs font-mono text-slate-400">Được lập lịch sao lưu tự động định kỳ</div>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end">
+              <button onclick="switchDocSubTab('fulltree')"
+                 class="px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <span>Xem Cây Thư Mục Ổ D:\</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hướng dẫn & Quy chế lưu trữ y tế -->
+        <div class="bg-gradient-to-r from-slate-50 to-sky-50/50 p-6 rounded-2xl border border-slate-200 space-y-3">
+          <h4 class="text-sm font-extrabold text-slate-900 uppercase flex items-center gap-2">
+            <svg class="w-4 h-4 text-sky-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Quy Chế Quản Lý & Lưu Trữ Hồ Sơ - Khoa Xét Nghiệm BVĐK Thiên Ân</span>
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-600 leading-relaxed pt-2">
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs">
+              <strong class="text-slate-800 block mb-1 font-bold text-sky-900">1. Lưu Trữ Hồ Sơ Giấy (Bìa Còng)</strong>
+              Xếp 10 Cuốn vào 11 tập bìa còng 7cm theo đúng số thứ tự Cuốn 01 đến Cuốn 10. Dán nhãn mặt và nhãn gáy in sẵn trong Nhóm 11. Đặt tại tủ kính niêm phong phòng Trưởng khoa & phòng giao ban.
+            </div>
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs">
+              <strong class="text-slate-800 block mb-1 font-bold text-sky-900">2. Lưu Trữ Điện Tử (Ổ D:\)</strong>
+              Toàn bộ file gốc DOCX, XLSX, PDF được lưu trữ tập trung tại <code>D:\01_TRON_BO_HO_SO_KHOA_XET_NGHIEM_TOAN_DIEN_2026</code>. Cán bộ khoa có thể tra cứu và tải trực tiếp qua mạng nội bộ LAN hoặc internet.
+            </div>
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs">
+              <strong class="text-slate-800 block mb-1 font-bold text-sky-900">3. Sao Lưu Dự Phòng Định Kỳ</strong>
+              KTV Trưởng chịu trách nhiệm cắm ổ cứng di động sao lưu thư mục D:\ định kỳ vào ngày 25 hàng tháng. Tuyệt đối không xóa sửa cấu trúc 12 nhóm thư mục chuyên đề để đảm bảo tính toàn vẹn hệ thống.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VIEW 4: MODULE 4 INVENTORY (KHO HÓA CHẤT & VẬT TƯ) ================= -->
+    <section id="view-inventory" class="hidden space-y-6">
+      <!-- Title & Banner -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="p-3 bg-sky-50 text-sky-700 rounded-2xl border border-sky-100 shrink-0">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base sm:text-lg font-extrabold text-slate-900 uppercase">QUẢN LÝ KHO HÓA CHẤT, SINH PHẨM & VẬT TƯ TIÊU HAO</h3>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Sổ theo dõi xuất nhập tồn, quản lý hạn sử dụng, số lô, nhiệt độ bảo quản và lập dự trù định kỳ • BVĐK Thiên Ân</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button id="btn-add-inventory-item" onclick="openAddInventoryModal()" class="px-3.5 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>+ Thêm Mặt Hàng</span>
+          </button>
+          <button onclick="exportInventoryExcel()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="Xuất file Excel tồn kho và thẻ kho">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Xuất Excel Tồn Kho</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Quick KPI Summary Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
+          <div class="p-2.5 bg-blue-50 text-blue-700 rounded-xl shrink-0">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          </div>
+          <div>
+            <div class="text-[11px] font-semibold text-slate-500 uppercase">Tổng Danh Mục Kho</div>
+            <div id="inv-kpi-total" class="text-base sm:text-lg font-extrabold text-slate-900 mt-0.5">29 Mặt Hàng</div>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
+          <div class="p-2.5 bg-red-50 text-red-600 rounded-xl shrink-0">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          </div>
+          <div>
+            <div class="text-[11px] font-semibold text-slate-500 uppercase">Cần Nhập Thêm (Dưới Min)</div>
+            <div id="inv-kpi-low-stock" class="text-base sm:text-lg font-extrabold text-red-600 mt-0.5">0 Cảnh Báo</div>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
+          <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl shrink-0">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <div class="text-[11px] font-semibold text-slate-500 uppercase">Cận Hạn Dùng (&lt;45 ngày)</div>
+            <div id="inv-kpi-near-expiry" class="text-base sm:text-lg font-extrabold text-amber-600 mt-0.5">0 Mặt Hàng</div>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
+          <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl shrink-0">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          </div>
+          <div>
+            <div class="text-[11px] font-semibold text-slate-500 uppercase">Nhiệt Độ Bảo Quản</div>
+            <div class="text-xs sm:text-sm font-extrabold text-emerald-700 mt-0.5">2-8°C / -20°C / Mát</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main 3-Section Sub-Tabs -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="border-b border-slate-200 p-2 sm:p-3 bg-slate-50/70 flex items-center gap-2 flex-wrap">
+          <button id="inv-subtab-btn-stock" onclick="switchInventorySubTab('stock')"
+                  class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-sky-700 text-white shadow-sm transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span>1. Số Lượng Kho Thực Tế</span>
+          </button>
+          <button id="inv-subtab-btn-forecast" onclick="switchInventorySubTab('forecast')"
+                  class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>2. Dự Trù Hóa Chất & Vật Tư</span>
+          </button>
+          <button id="inv-subtab-btn-openvials" onclick="switchInventorySubTab('openvials')"
+                  class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            <span>3. Quản Lý Hạn Mở Nắp Lọ (In-Use Stability)</span>
+          </button>
+        </div>
+
+        <!-- MỤC 1: SỐ LƯỢNG KHO HIỆN ĐANG CÓ TRONG KHO (TỒN KHO THỰC TẾ) -->
+        <div id="inv-content-stock" class="p-4 sm:p-5 space-y-4">
+          <!-- Filters & Search Toolbar -->
+          <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <!-- Category Tabs -->
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button id="inv-cat-tab-all" onclick="setInventoryCategory('all')"
+                      class="px-3 py-1.5 rounded-xl font-bold text-xs bg-sky-700 text-white shadow-xs transition">
+                Tất Cả
+              </button>
+              <button id="inv-cat-tab-hoa_chat" onclick="setInventoryCategory('hoa_chat')"
+                      class="px-3 py-1.5 rounded-xl font-semibold text-xs text-slate-600 hover:text-sky-700 hover:bg-sky-50 border border-slate-200 transition">
+                Hóa Chất Máy
+              </button>
+              <button id="inv-cat-tab-sinh_pham" onclick="setInventoryCategory('sinh_pham')"
+                      class="px-3 py-1.5 rounded-xl font-semibold text-xs text-slate-600 hover:text-sky-700 hover:bg-sky-50 border border-slate-200 transition">
+                Sinh Phẩm / Test Nhanh
+              </button>
+              <button id="inv-cat-tab-vat_tu" onclick="setInventoryCategory('vat_tu')"
+                      class="px-3 py-1.5 rounded-xl font-semibold text-xs text-slate-600 hover:text-sky-700 hover:bg-sky-50 border border-slate-200 transition">
+                Vật Tư Tiêu Hao
+              </button>
+            </div>
+
+            <!-- Search & Status Filter -->
+            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              <div class="relative w-full sm:w-64">
+                <input type="text" id="inv-search-input" oninput="handleInventorySearch(this.value)"
+                       placeholder="Tìm mã, tên hóa chất, số lô..."
+                       class="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-sky-600 focus:outline-none">
+                <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              </div>
+
+              <select onchange="setInventoryStatusFilter(this.value)"
+                      class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-sky-600 focus:outline-none">
+                <option value="all">Tất cả tình trạng</option>
+                <option value="low_stock">⚠️ Cần nhập thêm (dưới định mức)</option>
+                <option value="near_expiry">⌛ Cận date (&lt;45 ngày)</option>
+                <option value="safe">✅ Tồn kho an toàn</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Total Count Info Bar -->
+          <div class="flex items-center justify-between text-xs text-slate-500 px-1">
+            <span id="inv-results-count">Đang tải danh mục tồn kho...</span>
+            <span class="text-slate-400 italic">Áp dụng nguyên tắc xuất trước hết hạn trước (FEFO) quản lý hóa chất</span>
+          </div>
+
+          <!-- Inventory Table -->
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
+                  <th class="p-3 text-center w-10">STT</th>
+                  <th class="p-3 w-32">Mã & Phân Nhóm</th>
+                  <th class="p-3 min-w-[200px]">Tên Hóa Chất / Sinh Phẩm / Vật Tư</th>
+                  <th class="p-3 text-center w-24">ĐVT & Vị Trí</th>
+                  <th class="p-3 text-center w-36">Số Lô & Hạn Dùng</th>
+                  <th class="p-3 text-center w-28">Nhiệt Độ / Mở</th>
+                  <th class="p-3 text-right w-36">Tồn Kho Hiện Tại</th>
+                  <th class="p-3 text-center w-28">Tình Trạng</th>
+                  <th class="p-3 text-right w-32">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-items-tbody">
+                <!-- Injected by module6_inventory.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- MỤC 2: DỰ TRÙ HÓA CHẤT & VẬT TƯ TIÊU HAO (KẾ HOẠCH MUA SẮM & DỰ TRÙ & THEO DÕI NỢ DƯỢC) -->
+        <div id="inv-content-forecast" class="hidden p-4 sm:p-5 space-y-4">
+          <!-- Planning Controls Bar -->
+          <div class="bg-sky-50/70 border border-sky-100 p-4 rounded-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <label class="text-xs font-bold text-sky-950 whitespace-nowrap">Kỳ dự trù:</label>
+              <select id="forecast-period-select" class="px-3 py-1.5 bg-white border border-sky-300 rounded-xl text-xs font-bold text-sky-900 focus:outline-none focus:ring-2 focus:ring-sky-600">
+                <option value="Tháng 12/2026">Tháng 12/2026</option>
+                <option value="Tháng 01/2027">Tháng 01/2027</option>
+                <option value="Quý I/2027">Quý I/2027</option>
+                <option value="Đợt Đột Xuất Tháng 12/2026">Đợt Đột Xuất Tháng 12/2026</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              <button id="btn-forecast-autocalc" onclick="autoCalculateForecast()" class="px-3.5 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="Tự động tính đề xuất dựa trên tồn kho và mức tiêu hao">
+                <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span>⚡ Tự Động Tính Đề Xuất</span>
+              </button>
+              <button id="btn-forecast-save" onclick="saveForecastPlan()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                <span>Lưu Dự Trù</span>
+              </button>
+              <button onclick="printOfficialForecastForm()" class="px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                <span>In Phiếu Dự Trù & Nợ Hàng (A4)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Debt & Delivery Tracking Alert Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex items-center gap-3 shadow-xs">
+              <div class="p-2 bg-blue-50 text-blue-700 rounded-lg shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              </div>
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500 uppercase">Mặt Hàng Dự Trù</div>
+                <div id="forecast-kpi-total-items" class="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">--</div>
+              </div>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex items-center gap-3 shadow-xs">
+              <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500 uppercase">Đã Nhận Đủ Hàng</div>
+                <div id="forecast-kpi-fully-supplied" class="text-sm sm:text-base font-extrabold text-emerald-700 mt-0.5">--</div>
+              </div>
+            </div>
+
+            <div class="bg-red-50/70 p-3.5 rounded-xl border border-red-200 flex items-center gap-3 shadow-xs">
+              <div class="p-2 bg-red-100 text-red-600 rounded-lg shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              </div>
+              <div>
+                <div class="text-[11px] font-bold text-red-700 uppercase">Dược Còn Nợ Hàng (Phát Sau)</div>
+                <div id="forecast-kpi-debt-items" class="text-sm sm:text-base font-black text-red-700 mt-0.5">0 Mặt Hàng</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formula Help Note -->
+          <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
+            <span class="text-base leading-none">💡</span>
+            <div>
+              <strong>Quy trình dự trù & ghi nợ dược:</strong> Khoa Xét nghiệm dự trù theo nhu cầu sử dụng. Khi Kho Dược cấp hàng, nếu Dược thiếu hàng sẽ <b>ghi nợ lại</b>. Số nợ = (SL Dự trù - SL Thực cấp). Khi Kho Dược có hàng về phát sau, bấm nút <b>"⚡ Nhận Bù Hàng Nợ"</b> để cập nhật và tự động cộng vào tồn kho thực tế của Khoa.
+            </div>
+          </div>
+
+          <!-- Forecast Table -->
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
+                  <th class="p-2.5 text-center w-10">STT</th>
+                  <th class="p-2.5 w-20">Mã</th>
+                  <th class="p-2.5 min-w-[170px]">Tên Mặt Hàng</th>
+                  <th class="p-2.5 text-center w-14">ĐVT</th>
+                  <th class="p-2.5 text-right w-16">Tồn Kho</th>
+                  <th class="p-2.5 text-right w-16">Tiêu Hao</th>
+                  <th class="p-2.5 text-right w-16 text-sky-800">Đề Xuất</th>
+                  <th class="p-2.5 text-center w-24 text-amber-900 bg-amber-50/60">SL Dự Trù (Khoa Xin)</th>
+                  <th class="p-2.5 text-center w-24 text-blue-900 bg-blue-50/60">SL Thực Cấp (Dược Giao)</th>
+                  <th class="p-2.5 text-center w-28 text-red-700 bg-red-50/60">Dược Còn Nợ</th>
+                  <th class="p-2.5 text-right w-24">Đơn Giá (đ)</th>
+                  <th class="p-2.5 text-right w-28 text-red-700">Thành Tiền</th>
+                  <th class="p-2.5 min-w-[140px]">Ghi Chú Nợ / Hẹn Phát</th>
+                  <th class="p-2.5 text-center w-24">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="forecast-items-tbody">
+                <!-- Injected by module6_inventory.js -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Forecast Summary Footer -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-xs text-slate-500">
+              * Biểu mẫu dự trù hóa chất, vật tư y tế BM.HC.01 bao gồm chữ ký của Người lập dự trù, KTV Trưởng, Trưởng khoa, Kho Dược và Ban Giám Đốc.
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-bold uppercase text-slate-700">Tổng Kinh Phí Dự Trù:</span>
+              <span id="forecast-total-cost-text" class="text-lg font-black text-red-600 font-mono">0 VNĐ</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MỤC 3: QUẢN LÝ HẠN MỞ NẮP LỌ (IN-USE STABILITY / OPEN-VIAL MANAGEMENT) -->
+        <div id="inv-content-openvials" class="hidden p-4 sm:p-5 space-y-4">
+          <!-- Toolbar & Filters -->
+          <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div class="flex items-center gap-2 flex-wrap">
+              <!-- Status filter buttons -->
+              <button id="vials-filter-active" onclick="setVialsFilter('active')" class="px-3 py-1.5 rounded-xl font-bold text-xs bg-sky-700 text-white shadow-xs transition">
+                Đang Mở Nắp
+              </button>
+              <button id="vials-filter-warning" onclick="setVialsFilter('warning')" class="px-3 py-1.5 rounded-xl font-semibold text-xs text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition">
+                ⚠️ Cận Hạn (≤5 ngày)
+              </button>
+              <button id="vials-filter-expired" onclick="setVialsFilter('expired')" class="px-3 py-1.5 rounded-xl font-semibold text-xs text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition">
+                ⛔ Quá Hạn Mở Nắp
+              </button>
+              <button id="vials-filter-finished" onclick="setVialsFilter('finished')" class="px-3 py-1.5 rounded-xl font-semibold text-xs text-slate-600 hover:text-sky-700 hover:bg-sky-50 border border-slate-200 transition">
+                Đã Dùng Hết / Hủy
+              </button>
+              <button id="vials-filter-all" onclick="setVialsFilter('all')" class="px-3 py-1.5 rounded-xl font-semibold text-xs text-slate-600 hover:text-sky-700 hover:bg-sky-50 border border-slate-200 transition">
+                Tất Cả
+              </button>
+            </div>
+
+            <!-- Search and Add Button -->
+            <div class="flex items-center gap-2">
+              <div class="relative w-full sm:w-64">
+                <input type="text" id="vials-search-input" oninput="debounceVialsSearch()" placeholder="Tìm lọ, số lô, mã hàng..."
+                       class="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              </div>
+              <button onclick="openAddVialModal()" class="px-3.5 py-1.5 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>+ Ghi Nhận Mở Lọ</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Mini KPI Cards for Open Vials -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-blue-50/70 p-3 rounded-xl border border-blue-200 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">🧪</div>
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500 uppercase">Đang Mở Sử Dụng</div>
+                <div id="vials-stat-active" class="text-base font-extrabold text-blue-800">0 Lọ</div>
+              </div>
+            </div>
+            <div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">🟢</div>
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500 uppercase">Còn Hạn An Toàn</div>
+                <div id="vials-stat-safe" class="text-base font-extrabold text-emerald-700">0 Lọ</div>
+              </div>
+            </div>
+            <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-200 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">⚠️</div>
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500 uppercase">Sắp Hết Hạn (≤5 ngày)</div>
+                <div id="vials-stat-warning" class="text-base font-extrabold text-amber-700">0 Lọ</div>
+              </div>
+            </div>
+            <div class="bg-red-50/70 p-3 rounded-xl border border-red-200 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-red-100 text-red-700 flex items-center justify-center font-bold">⛔</div>
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500 uppercase">Quá Hạn Mở Nắp</div>
+                <div id="vials-stat-expired" class="text-base font-extrabold text-red-700">0 Lọ</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Open Vials Table -->
+          <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-xs">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-100 text-slate-700 uppercase font-bold text-[11px] border-b border-slate-200 tracking-wider">
+                  <th class="p-2.5 text-center w-10">STT</th>
+                  <th class="p-2.5 min-w-[200px]">Hóa Chất / Sinh Phẩm</th>
+                  <th class="p-2.5 w-28">Số Lô & Nhãn Lọ</th>
+                  <th class="p-2.5 w-32">Vị Trí Đặt Lọ</th>
+                  <th class="p-2.5 w-28 text-center">Ngày Mở Nắp</th>
+                  <th class="p-2.5 w-24 text-center">Độ Ổn Định</th>
+                  <th class="p-2.5 w-28 text-center">Hạn Dùng Mở Nắp</th>
+                  <th class="p-2.5 w-36">Đếm Ngược / Tiến Trình</th>
+                  <th class="p-2.5 w-28">Người Mở</th>
+                  <th class="p-2.5 text-center w-28">Trạng Thái</th>
+                  <th class="p-2.5 text-center w-36">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="open-vials-tbody">
+                <!-- Injected by module6_inventory.js -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Bottom Notice -->
+          <div class="p-3 bg-sky-50 rounded-xl border border-sky-200 text-xs text-sky-900 flex items-start gap-2">
+            <span class="text-base leading-none">📋</span>
+            <div>
+              <strong>Quy chuẩn quản lý hạn mở nắp (Quyết định 2429/QĐ-BYT - Mục 6.3 & ISO 15189):</strong> 
+              Tất cả lọ hóa chất, sinh phẩm, calibrator, control khi bẻ nắp hoặc đưa vào máy xét nghiệm bắt buộc phải dán nhãn ghi nhận Ngày mở nắp, Hạn dùng sau khi mở (In-use stability) và Tên KTV thực hiện. Nhấn nút <strong>[🏷️ In Tem Nhãn]</strong> để in tem dán lọ mini.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VIEW 5: MODULE 5 EMPLOYEE PROFILES ================= -->
+    <section id="view-profiles" class="hidden space-y-4">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 uppercase">HỒ SƠ CÁN BỘ NHÂN VIÊN KHOA XÉT NGHIỆM</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Hồ sơ 04 cán bộ chính thức của Khoa • Lưu trữ scan an toàn tại <code>D:\KHOA_XET_NGHIEM_DATA\HO_SO_NHAN_SU\</code></p>
+        </div>
+        <div class="text-xs font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+          Chính sách bảo mật: Cá nhân chỉ xem hồ sơ của mình & Trưởng khoa/KTV Trưởng
+        </div>
+      </div>
+
+      <!-- Profiles Grid Container -->
+      <div id="profiles-list-container">
+        <!-- Injected by module4_profiles.js -->
+      </div>
+    </section>
+
+    <!-- ================= VIEW 6: MODULE 6 ENVIRONMENT (SỔ NHIỆT ĐỘ & MÔI TRƯỜNG BM.MT.01) ================= -->
+    <section id="view-environment" class="hidden space-y-6">
+      <!-- Title & Action Banner -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="p-3 bg-teal-50 text-teal-700 rounded-2xl border border-teal-100 shrink-0">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-base sm:text-lg font-extrabold text-slate-900 uppercase">SỔ THEO DÕI NHIỆT ĐỘ - ĐỘ ẨM HÀNG NGÀY</h3>
+              <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-teal-100 text-teal-800 border border-teal-200">BIỂU MẪU BM.MT.01</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-sky-100 text-sky-800 border border-sky-200">QĐ 2429 / ISO 15189</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Theo dõi điều kiện môi trường phòng xét nghiệm, tủ lạnh sinh phẩm 2-8°C và tủ đông âm sâu -20°C (2 ca/ngày) • BVĐK Thiên Ân</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="openEnvLogModal()" class="px-3.5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>+ Ghi Nhận Ca Mới</span>
+          </button>
+          <button onclick="openPrintEnvModal()" class="px-3.5 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="In biểu mẫu BM.MT.01 chuẩn nộp đoàn kiểm tra Sở Y Tế">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span>🖨️ Xuất / In Sổ BM.MT.01 (A4)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 KPI Environment Status Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card 1: Phòng Xét Nghiệm Temp -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="text-xs font-bold text-slate-700 uppercase">Nhiệt Độ Phòng Máy</span>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">18 - 25°C</span>
+          </div>
+          <div class="my-3 flex items-baseline gap-2">
+            <span id="env-kpi-room-temp" class="text-2xl sm:text-3xl font-black text-slate-900 font-mono">--°C</span>
+            <span id="env-kpi-room-temp-status" class="text-[11px] font-bold text-emerald-600">Đạt chuẩn</span>
+          </div>
+          <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between">
+            <span>TB: <strong id="env-kpi-room-temp-avg" class="text-slate-700 font-mono">--</strong></span>
+            <span>Min/Max: <strong id="env-kpi-room-temp-range" class="text-slate-700 font-mono">--</strong></span>
+          </div>
+          <button onclick="openEnvLogModal('room')" class="w-full mt-2.5 py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold rounded-xl border border-emerald-200 transition flex items-center justify-center gap-1.5 shadow-xs">
+            <span>⚡ Đánh Nhiệt Độ Phòng Máy</span>
+          </button>
+        </div>
+
+        <!-- Card 2: Phòng Xét Nghiệm Humidity -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+              <span class="text-xs font-bold text-slate-700 uppercase">Độ Ẩm Không Khí</span>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">40 - 75%</span>
+          </div>
+          <div class="my-3 flex items-baseline gap-2">
+            <span id="env-kpi-room-hum" class="text-2xl sm:text-3xl font-black text-slate-900 font-mono">--%</span>
+            <span id="env-kpi-room-hum-status" class="text-[11px] font-bold text-blue-600">Ổn định</span>
+          </div>
+          <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between">
+            <span>TB: <strong id="env-kpi-room-hum-avg" class="text-slate-700 font-mono">--</strong></span>
+            <span>Min/Max: <strong id="env-kpi-room-hum-range" class="text-slate-700 font-mono">--</strong></span>
+          </div>
+          <button onclick="openEnvLogModal('room')" class="w-full mt-2.5 py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-blue-800 text-[11px] font-bold rounded-xl border border-blue-200 transition flex items-center justify-center gap-1.5 shadow-xs">
+            <span>⚡ Đánh Độ Ẩm Phòng Máy</span>
+          </button>
+        </div>
+
+        <!-- Card 3: Tủ Lạnh 2-8°C -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
+              <span class="text-xs font-bold text-slate-700 uppercase">Tủ Lạnh Sinh Phẩm (TL-01)</span>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-800">2.0 - 8.0°C</span>
+          </div>
+          <div class="my-3 flex items-baseline gap-2">
+            <span id="env-kpi-fridge-temp" class="text-2xl sm:text-3xl font-black text-slate-900 font-mono">--°C</span>
+            <span id="env-kpi-fridge-temp-status" class="text-[11px] font-bold text-teal-600">Bảo quản tốt</span>
+          </div>
+          <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between">
+            <span>TB: <strong id="env-kpi-fridge-temp-avg" class="text-slate-700 font-mono">--</strong></span>
+            <span>Min/Max: <strong id="env-kpi-fridge-temp-range" class="text-slate-700 font-mono">--</strong></span>
+          </div>
+          <button onclick="openEnvLogModal('tl01')" class="w-full mt-2.5 py-1.5 px-2 bg-teal-50 hover:bg-teal-100 text-teal-800 text-[11px] font-bold rounded-xl border border-teal-200 transition flex items-center justify-center gap-1.5 shadow-xs">
+            <span>⚡ Đánh Nhiệt Độ Tủ Lạnh (2-8°C)</span>
+          </button>
+        </div>
+
+        <!-- Card 4: Tủ Đông Lưu Mẫu -20°C -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>
+              <span class="text-xs font-bold text-slate-700 uppercase">Tủ Đông Âm Sâu (TĐ-01)</span>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-100 text-cyan-800">≤ -15°C</span>
+          </div>
+          <div class="my-3 flex items-baseline gap-2">
+            <span id="env-kpi-freezer-temp" class="text-2xl sm:text-3xl font-black text-slate-900 font-mono">--°C</span>
+            <span id="env-kpi-freezer-temp-status" class="text-[11px] font-bold text-cyan-700">Đạt âm sâu</span>
+          </div>
+          <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between">
+            <span>TB: <strong id="env-kpi-freezer-temp-avg" class="text-slate-700 font-mono">--</strong></span>
+            <span>Min/Max: <strong id="env-kpi-freezer-temp-range" class="text-slate-700 font-mono">--</strong></span>
+          </div>
+          <button onclick="openEnvLogModal('td01')" class="w-full mt-2.5 py-1.5 px-2 bg-cyan-50 hover:bg-cyan-100 text-cyan-800 text-[11px] font-bold rounded-xl border border-cyan-200 transition flex items-center justify-center gap-1.5 shadow-xs">
+            <span>⚡ Đánh Nhiệt Độ Tủ Đông (≤-15°C)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Month Filter & Table Card -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <!-- Toolbar Filter -->
+        <div class="border-b border-slate-200 p-3 sm:p-4 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-3 flex-wrap">
+          <div class="flex items-center gap-2 flex-wrap">
+            <label class="text-xs font-bold text-slate-700">Xem Tháng:</label>
+            <select id="env-select-month" onchange="loadEnvironmentLogs()" class="p-1.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800">
+              <option value="1">Tháng 01</option>
+              <option value="2">Tháng 02</option>
+              <option value="3">Tháng 03</option>
+              <option value="4">Tháng 04</option>
+              <option value="5">Tháng 05</option>
+              <option value="6">Tháng 06</option>
+              <option value="7">Tháng 07</option>
+              <option value="8">Tháng 08</option>
+              <option value="9">Tháng 09</option>
+              <option value="10">Tháng 10</option>
+              <option value="11" selected>Tháng 11</option>
+              <option value="12">Tháng 12</option>
+            </select>
+            <select id="env-select-year" onchange="loadEnvironmentLogs()" class="p-1.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800">
+              <option value="2025">Năm 2025</option>
+              <option value="2026" selected>Năm 2026</option>
+              <option value="2027">Năm 2027</option>
+            </select>
+
+            <span class="text-slate-300">|</span>
+            <label class="text-xs font-bold text-slate-700">Bộ Lọc Tủ / Vị Trí:</label>
+            <select id="env-filter-device" onchange="filterEnvTableByDevice()" class="p-1.5 bg-white border border-teal-300 rounded-xl text-xs font-bold text-teal-900">
+              <option value="all">🏢 Tất Cả Các Tủ & Phòng Máy</option>
+              <option value="tl01">🧊 Tủ Lạnh Hóa Chất & Sinh Phẩm (TL-01: 2-8°C)</option>
+              <option value="tl02">🧪 Tủ Lạnh Mẫu Bệnh Phẩm (TL-02: 2-8°C)</option>
+              <option value="td01">❄️ Tủ Đông Âm Sâu (TĐ-01: ≤ -15°C)</option>
+              <option value="ta01">🌡️ Tủ Ấm (TÂ-01: 35-37°C)</option>
+              <option value="room">🏢 Không Gian Phòng Máy (18-25°C & 40-75%)</option>
+            </select>
+              <option value="6">Tháng 06</option>
+              <option value="7">Tháng 07</option>
+              <option value="8">Tháng 08</option>
+              <option value="9">Tháng 09</option>
+              <option value="10">Tháng 10</option>
+              <option value="11" selected>Tháng 11</option>
+              <option value="12">Tháng 12</option>
+            </select>
+            <select id="env-select-year" onchange="loadEnvironmentLogs()" class="p-1.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800">
+              <option value="2025">Năm 2025</option>
+              <option value="2026" selected>Năm 2026</option>
+              <option value="2027">Năm 2027</option>
+            </select>
+            <button onclick="loadEnvironmentLogs()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl text-xs transition">
+              Tải Lại
+            </button>
+          </div>
+
+          <div class="flex items-center gap-3 text-xs">
+            <span class="text-slate-500">Tổng lượt ghi: <strong id="env-stat-total" class="text-slate-800 font-bold">0</strong></span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">🟢 An toàn: <span id="env-stat-safe">0</span></span>
+            <span class="px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-bold">🔴 Cảnh báo: <span id="env-stat-warning">0</span></span>
+          </div>
+        </div>
+
+        <!-- Logs Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 uppercase font-bold text-[11px] border-b border-slate-200 tracking-wider">
+                <th class="p-2.5 text-center w-10">STT</th>
+                <th class="p-2.5 w-28 text-center">Ngày Đo</th>
+                <th class="p-2.5 w-24 text-center">Ca / Giờ</th>
+                <th class="p-2.5 text-right w-32">Nhiệt Độ Phòng (18-25°C)</th>
+                <th class="p-2.5 text-right w-28">Độ Ẩm Phòng (40-75%)</th>
+                <th class="p-2.5 text-right w-32">Tủ Lạnh (2-8°C)</th>
+                <th class="p-2.5 text-right w-32">Tủ Đông (≤ -15°C)</th>
+                <th class="p-2.5 text-center w-28">Đánh Giá</th>
+                <th class="p-2.5 min-w-[200px]">Cảnh Báo & Khắc Phục</th>
+                <th class="p-2.5 w-32">KTV Ghi Nhận</th>
+                <th class="p-2.5 w-32">Ký Duyệt</th>
+              </tr>
+            </thead>
+            <tbody id="env-logs-tbody">
+              <!-- Injected by module7_environment.js -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="p-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex items-center justify-between">
+          <span>* Quy chuẩn: Ca Sáng đo lúc 08h00; Ca Chiều đo lúc 14h00 hàng ngày. Trưởng khoa/KTV Trưởng ký duyệt cuối tháng.</span>
+          <span class="text-[11px] font-mono text-teal-800 font-bold">BM.MT.01 / BVĐK THIÊN ÂN</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Modal 1: Leave Request Modal -->
+  <div id="modal-leave-request" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="bg-sky-800 text-white p-4 flex items-center justify-between">
+        <h3 class="font-bold text-sm uppercase">Đăng Ký Xin Nghỉ Phép / Nghỉ Bù / Đi Học</h3>
+        <button onclick="closeModal('modal-leave-request')" class="text-sky-200 hover:text-white">✕</button>
+      </div>
+      <div class="p-5 space-y-3 text-xs">
+        <div id="lr-error" class="hidden p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl"></div>
+
+        <!-- Target User for Admin -->
+        <div id="lr-user-select-group" class="hidden">
+          <label class="block font-bold text-slate-700 mb-1">Đăng ký cho nhân viên:</label>
+          <select id="lr-target-user" onchange="onLeaveTargetUserChange()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs"></select>
+        </div>
+
+        <!-- Annual Leave Balance Information Card (12 Days Standard) -->
+        <div id="lr-annual-leave-info" class="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl flex items-center justify-between shadow-xs">
+          <div>
+            <div class="text-[11px] font-bold text-emerald-950 uppercase flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Số Phép Năm (12 Ngày / Năm)</span>
+            </div>
+            <div class="text-[11px] text-slate-600 mt-0.5">
+              Đã nghỉ: <span id="lr-used-phep-text" class="font-bold text-slate-800">0</span> ngày • Chờ duyệt: <span id="lr-pending-phep-text" class="font-bold text-amber-700">0</span> ngày
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] text-emerald-700 uppercase font-semibold block">Còn lại</span>
+            <span id="lr-remaining-phep-badge" class="text-xs font-black px-2.5 py-1 rounded-lg bg-emerald-600 text-white shadow-xs">12 / 12 ngày</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Ngày xin nghỉ:</label>
+          <input type="date" id="lr-date" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Hình thức nghỉ:</label>
+            <select id="lr-type" onchange="onLeaveTypeChange()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold">
+              <option value="phep_nam">Nghỉ phép năm (12 ngày)</option>
+              <option value="nghi_bu">Nghỉ bù</option>
+              <option value="di_hoc">Đi học / Tập huấn</option>
+              <option value="viec_rieng">Việc riêng / Không lương</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Ca / Buổi nghỉ:</label>
+            <select id="lr-shift" onchange="onLeaveShiftChange()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs">
+              <option value="all">Cả ngày (07h00 - 11h00 & 13h00 - 17h00) - 1.0 ngày</option>
+              <option value="sang">Buổi sáng (07h00 - 11h00) - 0.5 ngày</option>
+              <option value="chieu">Buổi chiều (13h00 - 17h00) - 0.5 ngày</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Quota exhausted warning alert inside modal -->
+        <div id="lr-quota-warning" class="hidden p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-[11px] font-semibold">
+          ⚠️ Cán bộ này đã hết hoặc không đủ ngày phép năm còn lại. Vui lòng chọn "Nghỉ bù" hoặc "Việc riêng / Không lương".
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Lý do nghỉ cụ thể:</label>
+          <textarea id="lr-reason" rows="3" placeholder="Nhập lý do ngắn gọn..." class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:bg-white"></textarea>
+        </div>
+
+        <div class="pt-2 flex items-center justify-end gap-2">
+          <button onclick="closeModal('modal-leave-request')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Hủy bỏ</button>
+          <button onclick="submitLeaveRequest()" class="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl font-bold shadow-sm">Xác Nhận Đăng Ký</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 1B: Print Official Leave Application Modal -->
+  <div id="modal-print-leave" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-300">
+      <div class="bg-sky-900 text-white p-3.5 px-6 flex items-center justify-between no-print">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          <h3 class="font-bold text-sm uppercase">Mẫu Đơn Xin Nghỉ Phép - BVĐK Thiên Ân Viễn Đông</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="revertOriginalLeavePrint()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition" title="Khôi phục lại dữ liệu ban đầu nếu sửa nhầm">
+            🔄 Đặt Lại Gốc
+          </button>
+          <button onclick="executePrintLeave()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span>In Ngay Ra Máy In (A4)</span>
+          </button>
+          <button onclick="closeModal('modal-print-leave')" class="text-slate-300 hover:text-white px-2 py-1">✕</button>
+        </div>
+      </div>
+      <!-- Edit Mode Notification Bar -->
+      <div class="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center justify-between text-xs text-amber-900 no-print">
+        <div class="flex items-center gap-2">
+          <span class="text-base">✏️</span>
+          <span><b>Cho phép sửa chữa trực tiếp trước khi in:</b> Bạn có thể bấm chuột trực tiếp vào bất kỳ dòng chữ nào trên mẫu đơn bên dưới để gõ sửa đổi/bổ sung (Lý do, Thời gian, Số ĐT...) theo yêu cầu rồi mới bấm in.</span>
+        </div>
+      </div>
+      <!-- Printable Page Paper -->
+      <div class="flex-grow overflow-y-auto p-4 sm:p-6 bg-slate-200/80 flex justify-center">
+        <div id="print-leave-container" contenteditable="true" spellcheck="false" class="bg-white shadow-xl rounded-sm w-full max-w-[210mm] border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500">
+          <!-- Injected by module2_leave.js -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Document Preview Modal -->
+  <div id="modal-doc-preview" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full h-[85vh] flex flex-col overflow-hidden border border-slate-200">
+      <div class="bg-slate-900 text-white p-3.5 px-5 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          <h3 id="preview-doc-title" class="font-bold text-sm truncate max-w-lg">Xem Trước Biểu Mẫu</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <a id="preview-download-btn" href="#" download class="px-3 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded text-xs font-bold transition">Tải về</a>
+          <button onclick="closeDocPreviewModal()" class="text-slate-400 hover:text-white px-2 py-1">✕</button>
+        </div>
+      </div>
+      <div class="flex-grow bg-slate-200 p-1">
+        <iframe id="preview-iframe" class="w-full h-full bg-white rounded-lg" src="about:blank"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Upload Document Modal -->
+  <div id="modal-upload-document" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="bg-sky-800 text-white p-4 flex items-center justify-between">
+        <h3 class="font-bold text-sm uppercase">Tải Lên Biểu Mẫu Mới (Lưu Ổ D:\)</h3>
+        <button onclick="closeModal('modal-upload-document')" class="text-sky-200 hover:text-white">✕</button>
+      </div>
+      <div class="p-5 space-y-3 text-xs">
+        <div id="upload-doc-error" class="hidden p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl"></div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Danh mục biểu mẫu:</label>
+          <select id="upload-doc-cat" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold">
+            <option value="phieu_kq_hen">1. Phiếu Kết Quả & Phiếu Hẹn</option>
+            <option value="so_sach_2429">2. Sổ Sách & Biểu Mẫu QLCL (2429)</option>
+            <option value="bia_hanh_chinh">3. Bìa Hồ Sơ & Hành Chính</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Mã hiệu biểu mẫu (nếu có):</label>
+          <input type="text" id="upload-doc-code" placeholder="Ví dụ: K47-QTQL-42 hoặc XN.QTQL.5.12"
+                 class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tên biểu mẫu hiển thị:</label>
+          <input type="text" id="upload-doc-title" placeholder="Nhập tên biểu mẫu..."
+                 class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Phiên bản:</label>
+            <input type="text" id="upload-doc-version" value="1.0" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Chọn tệp (.docx, .xlsx, .pdf):</label>
+            <input type="file" id="upload-doc-file" class="w-full text-xs">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Mô tả / Hướng dẫn sử dụng:</label>
+          <textarea id="upload-doc-desc" rows="2" placeholder="Ghi chú về biểu mẫu..." class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs"></textarea>
+        </div>
+
+        <div class="pt-2 flex items-center justify-end gap-2">
+          <button onclick="closeModal('modal-upload-document')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Hủy</button>
+          <button onclick="submitUploadDocument()" class="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl font-bold shadow-sm">Tải Lên Ổ D</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Profile Detail Drawer / Modal -->
+  <div id="modal-profile-detail" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-sky-800 to-teal-800 text-white p-4 px-6 flex items-center justify-between">
+        <div>
+          <h3 id="pd-fullname" class="font-extrabold text-base">Hồ Sơ Cán Bộ</h3>
+          <p id="pd-title" class="text-xs text-sky-200 mt-0.5 font-medium">Chức vụ</p>
+        </div>
+        <button onclick="closeModal('modal-profile-detail')" class="text-sky-200 hover:text-white">✕</button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6 overflow-y-auto space-y-6 text-xs">
+        <!-- Storage Folder Notice -->
+        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+          <span class="text-slate-500 font-medium">Thư mục máy chủ cục bộ:</span>
+          <code id="pd-folder" class="font-mono text-sky-800 font-bold text-[11px]">D:\KHOA_XET_NGHIEM_DATA\HO_SO_NHAN_SU\...</code>
+        </div>
+
+        <!-- Two Columns: Info & Files -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Col 1: Basic Info -->
+          <div class="bg-slate-50/70 p-4 rounded-2xl border border-slate-200 space-y-2.5">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+              <h4 class="font-extrabold text-slate-900 uppercase">Thông Tin Hành Chính</h4>
+              <button onclick="openEditProfileModal()" class="px-2 py-1 bg-white hover:bg-sky-50 text-sky-700 font-bold rounded border border-slate-200 text-[11px] shadow-sm">
+                Sửa Thông Tin
+              </button>
+            </div>
+            <div class="space-y-1.5 text-slate-700">
+              <div class="flex justify-between"><span class="text-slate-400">Ngày sinh:</span><span id="pd-dob" class="font-bold">--</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Số CCHN/GPHN:</span><span id="pd-cchn" class="font-mono font-bold text-sky-900">--</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Ngày cấp:</span><span id="pd-cchn-date" class="font-medium">--</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Phạm vi CCHN:</span><span id="pd-cchn-scope" class="font-medium text-right max-w-[180px]">--</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Trình độ đào tạo:</span><span id="pd-education" class="font-semibold text-right max-w-[180px]">--</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Chuyên ngành:</span><span id="pd-specialty" class="font-medium text-right max-w-[180px]">--</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Điện thoại:</span><span id="pd-phone" class="font-mono">--</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Email:</span><span id="pd-email" class="font-mono truncate max-w-[180px]">--</span></div>
+            </div>
+          </div>
+
+          <!-- Col 2: Uploaded Scans & Docs -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+              <h4 class="font-extrabold text-slate-900 uppercase">Tệp Scan Hồ Sơ (Ổ D:\)</h4>
+              <button onclick="openUploadScanModal()" class="px-2.5 py-1 bg-sky-700 hover:bg-sky-800 text-white font-bold rounded text-[11px] shadow-sm">
+                + Tải Scan Mới
+              </button>
+            </div>
+            <div id="pd-files-container" class="max-h-72 overflow-y-auto pr-1">
+              <!-- Injected by module4_profiles.js -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Edit Profile Modal -->
+  <div id="modal-edit-profile" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="bg-sky-800 text-white p-4 flex items-center justify-between">
+        <h3 class="font-bold text-sm uppercase">Cập Nhật Thông Tin Hồ Sơ</h3>
+        <button onclick="closeModal('modal-edit-profile')" class="text-sky-200 hover:text-white">✕</button>
+      </div>
+      <div class="p-5 space-y-2.5 text-xs">
+        <div id="ep-error" class="hidden p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl"></div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Ngày sinh:</label>
+            <input type="date" id="ep-dob" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Số CCHN/GPHN:</label>
+            <input type="text" id="ep-cchn" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Ngày cấp CCHN:</label>
+            <input type="date" id="ep-cchn-date" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Số điện thoại:</label>
+            <input type="text" id="ep-phone" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Phạm vi hoạt động CCHN:</label>
+          <input type="text" id="ep-cchn-scope" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Trình độ đào tạo:</label>
+          <input type="text" id="ep-education" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Chuyên ngành:</label>
+          <input type="text" id="ep-specialty" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Email:</label>
+          <input type="email" id="ep-email" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+        </div>
+
+        <div class="pt-2 flex items-center justify-end gap-2">
+          <button onclick="closeModal('modal-edit-profile')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Hủy</button>
+          <button onclick="submitEditProfile()" class="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl font-bold shadow-sm">Lưu Thay Đổi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 6: Upload Profile File Modal -->
+  <div id="modal-upload-profile-file" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="bg-sky-800 text-white p-4 flex items-center justify-between">
+        <h3 class="font-bold text-sm uppercase">Tải Lên Scan Hồ Sơ Cá Nhân</h3>
+        <button onclick="closeModal('modal-upload-profile-file')" class="text-sky-200 hover:text-white">✕</button>
+      </div>
+      <div class="p-5 space-y-3 text-xs">
+        <div id="up-file-error" class="hidden p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl"></div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Loại giấy tờ / chứng chỉ:</label>
+          <select id="up-doc-type" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold">
+            <option value="bang_cap">Bằng tốt nghiệp & Chứng chỉ chuyên môn</option>
+            <option value="cchn">Chứng chỉ hành nghề / Giấy phép hành nghề</option>
+            <option value="atsh">Chứng chỉ An toàn sinh học cấp II</option>
+            <option value="gksk">Giấy khám sức khỏe định kỳ</option>
+            <option value="syll">Sơ yếu lý lịch / Hợp đồng lao động</option>
+            <option value="mo_ta_cv">Bản mô tả công việc (QĐ 2429)</option>
+            <option value="khac">Tài liệu khác</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tên tài liệu / chú thích:</label>
+          <input type="text" id="up-file-title" placeholder="Ví dụ: Scan Giấy phép hành nghề 2026"
+                 class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Chọn tệp (PDF, Ảnh scan, Word):</label>
+          <input type="file" id="up-file-input" class="w-full text-xs">
+        </div>
+
+        <div class="pt-2 flex items-center justify-end gap-2">
+          <button onclick="closeModal('modal-upload-profile-file')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Hủy</button>
+          <button onclick="submitUploadProfileFile()" class="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl font-bold shadow-sm">Lưu Vào Ổ D</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 7: Change Password Modal -->
+  <div id="modal-change-password" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200">
+      <div class="bg-sky-800 text-white p-4 flex items-center justify-between">
+        <h3 class="font-bold text-sm uppercase">Đổi Mật Khẩu Đăng Nhập</h3>
+        <button onclick="closeModal('modal-change-password')" class="text-sky-200 hover:text-white">✕</button>
+      </div>
+      <div class="p-5 space-y-3 text-xs">
+        <div id="cp-error" class="hidden p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl"></div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Mật khẩu hiện tại:</label>
+          <input type="password" id="cp-old-password" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Mật khẩu mới:</label>
+          <input type="password" id="cp-new-password" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Xác nhận mật khẩu mới:</label>
+          <input type="password" id="cp-confirm-password" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+        </div>
+
+        <div class="pt-2 flex items-center justify-end gap-2">
+          <button onclick="closeModal('modal-change-password')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Hủy</button>
+          <button onclick="submitChangePassword()" class="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl font-bold shadow-sm">Cập Nhật</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Document Viewer Modal (DM.TONG.00) -->
+  <div id="catalog-doc-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6">
+    <div id="catalog-modal-card" class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+      <!-- Modal Header Bar -->
+      <div id="catalog-modal-header-bar" class="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between border-b border-slate-800 shrink-0">
+        <div class="pr-4 min-w-0">
+          <h3 id="catalog-modal-title" class="font-bold text-sm sm:text-base text-white truncate">Xem Toàn Văn Tài Liệu</h3>
+          <p id="catalog-modal-subtitle" class="text-xs text-slate-400 truncate">Hệ thống QLCL 2429 & ATSH Cấp II</p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <a id="catalog-modal-download-btn" href="#" download 
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition"
+            title="Tải file Word (.docx) của cuốn chứa tài liệu này">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span class="hidden sm:inline">Tải File Word (.docx)</span>
+          </a>
+          <button id="catalog-modal-copy-btn" onclick="copyDocumentContent()" 
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition border border-slate-700">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+            <span class="hidden sm:inline">Sao Chép</span>
+          </button>
+          <button id="catalog-modal-print-btn" onclick="printDocument()" 
+            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span>In A4 Chuẩn</span>
+          </button>
+          <button id="catalog-modal-close-btn" onclick="closeDocumentViewer()" 
+            class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body Content -->
+      <div id="catalog-modal-content" class="p-6 md:p-8 overflow-y-auto space-y-4 text-slate-800 bg-white leading-relaxed">
+        <!-- Rendered HTML from catalog_data.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 8: Adjust Inventory Stock (Quick Nhập / Xuất) -->
+  <div id="modal-adjust-stock" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="bg-sky-800 text-white p-4 flex items-center justify-between">
+        <h3 id="adjust-stock-title" class="font-bold text-sm uppercase">Nhập / Xuất Kho</h3>
+        <button onclick="closeModal('modal-adjust-stock')" class="text-sky-200 hover:text-white">✕</button>
+      </div>
+      <div class="p-5 space-y-3 text-xs">
+        <div id="adjust-stock-error" class="hidden p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl"></div>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <div id="adjust-stock-item-name" class="font-bold text-slate-900 text-xs sm:text-sm">--</div>
+          <div class="text-slate-500 text-xs mt-1">Tồn kho hiện tại: <span id="adjust-stock-current-qty" class="font-extrabold text-sky-800">--</span></div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Số lượng thao tác:</label>
+          <input type="number" id="adjust-stock-qty" min="1" step="1" value="1" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-sm text-slate-900">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Lý do / Bộ phận nhận:</label>
+          <input type="text" id="adjust-stock-reason" placeholder="Ví dụ: Xuất phòng máy sinh hóa ca sáng" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+        </div>
+        <div class="pt-2 flex items-center justify-end gap-2">
+          <button onclick="closeModal('modal-adjust-stock')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Hủy</button>
+          <button id="adjust-stock-submit-btn" onclick="submitAdjustStock()" class="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl font-bold shadow-sm">Xác Nhận</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Nhận Bù Hàng Nợ (Dược Giao Sau) -->
+  <div id="modal-resolve-debt" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="bg-amber-600 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">⚡</span>
+          <h3 class="font-bold text-sm uppercase">Kho Dược Phát Bù Hàng Nợ</h3>
+        </div>
+        <button onclick="closeModal('modal-resolve-debt')" class="text-amber-200 hover:text-white">✕</button>
+      </div>
+      <div class="p-5 space-y-3 text-xs">
+        <div id="resolve-debt-error" class="hidden p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl"></div>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <div id="resolve-debt-item-name" class="font-bold text-slate-900 text-xs sm:text-sm">--</div>
+          <div class="text-slate-500 text-xs mt-1 flex items-center justify-between">
+            <span>Dược còn nợ: <b id="resolve-debt-current-debt" class="text-red-600 font-bold font-mono">--</b></span>
+            <span>Tồn kho hiện có: <b id="resolve-debt-stock-qty" class="text-sky-800 font-bold font-mono">--</b></span>
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Số lượng Dược phát bù đợt này:</label>
+          <input type="number" id="resolve-debt-qty" min="1" step="1" value="1" class="w-full p-2 bg-white border border-amber-300 rounded-xl font-bold text-sm text-slate-900 focus:ring-2 focus:ring-amber-500">
+          <p class="text-[11px] text-slate-400 mt-1 italic">* Hệ thống sẽ tự động trừ số nợ và cộng trực tiếp số lượng này vào tồn kho thực tế của Khoa.</p>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Ghi chú / Số phiếu giao hàng Dược:</label>
+          <input type="text" id="resolve-debt-notes" placeholder="Ví dụ: Dược xuất bù đợt 2 theo phiếu số..." class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+        </div>
+        <div class="pt-2 flex items-center justify-end gap-2">
+          <button onclick="closeModal('modal-resolve-debt')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Hủy</button>
+          <button id="resolve-debt-submit-btn" onclick="submitResolveDebt()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold shadow-sm flex items-center gap-1.5">
+            <span>Xác Nhận Nhận Hàng</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 9: Add New Inventory Item -->
+  <div id="modal-add-inventory-item" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden border border-slate-200 my-8">
+      <div class="bg-sky-800 text-white p-4 flex items-center justify-between">
+        <h3 class="font-bold text-sm uppercase">Thêm Mặt Hàng Mới Vào Kho Hóa Chất / Vật Tư</h3>
+        <button onclick="closeModal('modal-add-inventory-item')" class="text-sky-200 hover:text-white">✕</button>
+      </div>
+      <div class="p-5 space-y-3 text-xs max-h-[80vh] overflow-y-auto">
+        <div id="add-inv-error" class="hidden p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Mã mặt hàng (*):</label>
+            <input type="text" id="add-inv-code" placeholder="VD: HC-GLU-01" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono uppercase font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Phân nhóm (*):</label>
+            <select id="add-inv-cat" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold">
+              <option value="hoa_chat">Hóa chất máy xét nghiệm</option>
+              <option value="sinh_pham">Sinh phẩm / Test nhanh</option>
+              <option value="vat_tu">Vật tư tiêu hao</option>
+              <option value="qc_chuan">Huyết thanh kiểm tra (QC/Calib)</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tên hóa chất / vật tư (*):</label>
+          <input type="text" id="add-inv-name" placeholder="VD: Hóa chất xét nghiệm Glucose" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Quy cách đóng gói:</label>
+            <input type="text" id="add-inv-spec" placeholder="VD: Hộp 5x100ml" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Đơn vị tính (ĐVT):</label>
+            <input type="text" id="add-inv-unit" placeholder="Hộp / Lọ / Chai / Bộ" value="Hộp" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Hãng sản xuất / Nước:</label>
+            <input type="text" id="add-inv-mfg" placeholder="VD: Roche / Đức" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Số lô (Lot number):</label>
+            <input type="text" id="add-inv-lot" placeholder="VD: LOT62810" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Hạn sử dụng (Exp date):</label>
+            <input type="date" id="add-inv-exp" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Nhiệt độ bảo quản:</label>
+            <select id="add-inv-temp" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold">
+              <option value="2-8°C">❄️ 2-8°C (Tủ lạnh bảo quản)</option>
+              <option value="-20°C">🧊 -20°C (Tủ đông sâu)</option>
+              <option value="15-25°C">Kho mát (15-25°C)</option>
+              <option value="Phòng">Nhiệt độ phòng thoáng mát</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Số lượng nhập:</label>
+            <input type="number" id="add-inv-qty" min="0" step="1" value="0" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Định mức tồn tối thiểu:</label>
+            <input type="number" id="add-inv-min" min="0" step="1" value="5" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-red-700">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Tiêu hao TB/tháng:</label>
+            <input type="number" id="add-inv-usage" min="0" step="1" value="10" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-sky-800">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Đơn giá dự trù (VNĐ):</label>
+            <input type="number" id="add-inv-price" min="0" step="1000" value="0" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Vị trí lưu kho:</label>
+            <input type="text" id="add-inv-location" placeholder="VD: Tủ lạnh số 1, Tầng 2" value="Tủ lạnh 2-8°C" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Ghi chú thêm:</label>
+          <input type="text" id="add-inv-notes" placeholder="Mở nắp dùng trong 30 ngày..." class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+        </div>
+        <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+          <button onclick="closeModal('modal-add-inventory-item')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Hủy</button>
+          <button onclick="submitAddInventoryItem()" class="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl font-bold shadow-sm">Lưu Vào Kho</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 10: Edit Inventory Item -->
+  <div id="modal-edit-inventory-item" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden border border-slate-200 my-8">
+      <div class="bg-slate-900 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <h3 class="font-bold text-sm uppercase">Chỉnh Sửa Mặt Hàng:</h3>
+          <span id="edit-inv-code-display" class="font-mono bg-sky-800 px-2 py-0.5 rounded text-xs">--</span>
+        </div>
+        <button onclick="closeModal('modal-edit-inventory-item')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <div class="p-5 space-y-3 text-xs max-h-[80vh] overflow-y-auto">
+        <input type="hidden" id="edit-inv-id">
+        <div id="edit-inv-error" class="hidden p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl"></div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tên hóa chất / vật tư:</label>
+          <input type="text" id="edit-inv-name" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Phân nhóm:</label>
+            <select id="edit-inv-cat" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold">
+              <option value="hoa_chat">Hóa chất máy xét nghiệm</option>
+              <option value="sinh_pham">Sinh phẩm / Test nhanh</option>
+              <option value="vat_tu">Vật tư tiêu hao</option>
+              <option value="qc_chuan">Huyết thanh kiểm tra (QC/Calib)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Quy cách:</label>
+            <input type="text" id="edit-inv-spec" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Đơn vị tính (ĐVT):</label>
+            <input type="text" id="edit-inv-unit" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Hãng sản xuất:</label>
+            <input type="text" id="edit-inv-mfg" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Số lô (Lot):</label>
+            <input type="text" id="edit-inv-lot" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Hạn dùng (Exp date):</label>
+            <input type="date" id="edit-inv-exp" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Nhiệt độ bảo quản:</label>
+            <select id="edit-inv-temp" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold">
+              <option value="2-8°C">❄️ 2-8°C (Tủ lạnh bảo quản)</option>
+              <option value="-20°C">🧊 -20°C (Tủ đông sâu)</option>
+              <option value="15-25°C">Kho mát (15-25°C)</option>
+              <option value="Phòng">Nhiệt độ phòng</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Ngày mở nắp (nếu có):</label>
+            <input type="date" id="edit-inv-open-date" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono">
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Tồn kho hiện tại:</label>
+            <input type="number" id="edit-inv-qty" min="0" step="1" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Tồn tối thiểu:</label>
+            <input type="number" id="edit-inv-min" min="0" step="1" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-red-700">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Tiêu hao TB/tháng:</label>
+            <input type="number" id="edit-inv-usage" min="0" step="1" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-sky-800">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Đơn giá dự trù (VNĐ):</label>
+            <input type="number" id="edit-inv-price" min="0" step="1000" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Vị trí lưu trữ:</label>
+            <input type="text" id="edit-inv-location" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Ghi chú:</label>
+          <input type="text" id="edit-inv-notes" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+        </div>
+        <div class="pt-3 flex items-center justify-between border-t border-slate-100">
+          <button onclick="deleteCurrentInventoryItem()" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl font-bold text-xs border border-red-200 transition">
+            🗑️ Xóa Mặt Hàng
+          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="closeModal('modal-edit-inventory-item')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Hủy</button>
+            <button onclick="submitEditInventoryItem()" class="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl font-bold shadow-sm">Lưu Thay Đổi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 11: Print Forecast Sheet (Chuẩn A4 Y Tế) -->
+  <div id="modal-print-forecast" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6">
+    <div id="forecast-modal-card" class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+      <!-- Modal Header Bar -->
+      <div id="forecast-modal-header-bar" class="bg-sky-900 text-white px-5 py-3.5 flex items-center justify-between border-b border-sky-800 shrink-0">
+        <div class="pr-4 min-w-0">
+          <h3 class="font-bold text-sm sm:text-base text-white truncate">Xem & In Phiếu Dự Trù Hóa Chất Vật Tư Chuẩn A4</h3>
+          <p class="text-xs text-sky-200 truncate">Thể thức văn bản hành chính y tế • Bệnh Viện Đa Khoa Thiên Ân - Viễn Đông</p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="forecast-modal-print-btn" onclick="executePrintForecast()" 
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span>In Phiếu Ngay (A4)</span>
+          </button>
+          <button id="forecast-modal-close-btn" onclick="closeModal('modal-print-forecast')" 
+            class="p-1.5 text-sky-200 hover:text-white hover:bg-sky-800 rounded-lg transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Printable Document Container -->
+      <div id="print-forecast-container" class="p-6 md:p-8 overflow-y-auto space-y-4 text-slate-800 bg-white leading-relaxed">
+        <!-- Rendered by module6_inventory.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 12: Add Open Vial Modal -->
+  <div id="modal-add-open-vial" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden border border-slate-200 my-8">
+      <div class="bg-sky-800 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+          <h3 class="font-bold text-sm uppercase">Ghi Nhận Mở Nắp Lọ Hóa Chất / Sinh Phẩm</h3>
+        </div>
+        <button onclick="closeModal('modal-add-open-vial')" class="text-sky-200 hover:text-white">✕</button>
+      </div>
+      <div class="p-5 space-y-3 text-xs max-h-[82vh] overflow-y-auto">
+        <div id="aov-error" class="hidden p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl"></div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Chọn từ hóa chất trong kho:</label>
+          <select id="aov-item-select" onchange="onOpenVialItemSelected()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold">
+            <option value="">-- Chọn mặt hàng từ kho (hoặc nhập bên dưới) --</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Mã hóa chất / sinh phẩm:</label>
+            <input type="text" id="aov-code" placeholder="SH-GLU-16" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Số lô (Lot number):</label>
+            <input type="text" id="aov-lot" placeholder="LOT2616" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tên hóa chất / sinh phẩm / kit:</label>
+          <input type="text" id="aov-name" placeholder="Glucose GOD-PAP..." class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Nhãn lọ / Quy cách:</label>
+            <input type="text" id="aov-label" value="Lọ R1 (60ml)" placeholder="Lọ R1, Chai 100ml..." class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Vị trí đặt lọ:</label>
+            <select id="aov-location" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+              <option value="Máy sinh hóa tự động">Máy sinh hóa tự động</option>
+              <option value="Máy miễn dịch Maccura">Máy miễn dịch Maccura</option>
+              <option value="Máy huyết học">Máy huyết học</option>
+              <option value="Máy đông máu">Máy đông máu</option>
+              <option value="Tủ lạnh sinh phẩm 2-8°C">Tủ lạnh sinh phẩm 2-8°C</option>
+              <option value="Tủ đông lưu mẫu -20°C">Tủ đông lưu mẫu -20°C</option>
+              <option value="Bàn kỹ thuật làm việc">Bàn kỹ thuật làm việc</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Ngày mở nắp:</label>
+            <input type="date" id="aov-date" onchange="calcVialExpiry()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Giờ mở:</label>
+            <input type="text" id="aov-time" value="08:00" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-center">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Hạn ổn định (ngày):</label>
+            <input type="number" id="aov-days" value="30" min="1" max="365" onchange="calcVialExpiry()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-center">
+          </div>
+        </div>
+
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
+          <div>
+            <span class="text-[11px] font-bold text-amber-900 uppercase block">Hạn Sử Dụng Mở Nắp (In-Use Expiry):</span>
+            <span class="text-[11px] text-amber-700">Tự động tính = Ngày mở nắp + Số ngày ổn định</span>
+          </div>
+          <input type="date" id="aov-expiry" class="p-1.5 bg-white border border-amber-300 rounded-lg font-black text-red-700 text-xs">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Ghi chú thêm:</label>
+          <input type="text" id="aov-notes" placeholder="Chạy trên máy số 01, QC đạt..." class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+        </div>
+
+        <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+          <button onclick="closeModal('modal-add-open-vial')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Hủy</button>
+          <button onclick="submitAddOpenVial()" class="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl font-bold shadow-sm">Lưu & Đưa Vào Máy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 13: Finish / Discard Vial Modal -->
+  <div id="modal-finish-vial" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+        <h3 class="font-bold text-sm uppercase">Cập Nhật Trạng Thái Lọ Hóa Chất</h3>
+        <button onclick="closeModal('modal-finish-vial')" class="text-slate-300 hover:text-white">✕</button>
+      </div>
+      <div class="p-5 space-y-3 text-xs">
+        <input type="hidden" id="finish-vial-id">
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+          <div class="font-bold text-slate-800" id="finish-vial-name">--</div>
+          <div class="text-[11px] text-slate-500" id="finish-vial-info">--</div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Chọn thao tác:</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-emerald-50/50 cursor-pointer">
+              <input type="radio" name="finish_vial_action" value="finished" checked class="text-emerald-600">
+              <span class="font-bold text-emerald-800">Đã Dùng Hết</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-red-50/50 cursor-pointer">
+              <input type="radio" name="finish_vial_action" value="discarded" class="text-red-600">
+              <span class="font-bold text-red-800">Hủy Bỏ Lọ</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Lý do hủy / Ghi chú kết thúc:</label>
+          <input type="text" id="finish-vial-reason" placeholder="Đã dùng hết lọ / Lọ quá hạn mở nắp / Lỗi kết tủa..." class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+        </div>
+
+        <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+          <button onclick="closeModal('modal-finish-vial')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Đóng</button>
+          <button onclick="submitFinishOpenVial()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold shadow-sm">Xác Nhận</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 14: Print Vial Mini Sticker Label (QĐ 2429 Standard) -->
+  <div id="modal-print-vial-label" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-slate-900/60 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="bg-sky-900 text-white px-5 py-3.5 flex items-center justify-between border-b border-sky-800">
+        <div>
+          <h3 class="font-bold text-sm text-white">Xem & In Tem Nhãn Dán Lọ Hóa Chất</h3>
+          <p class="text-[11px] text-sky-200">Kích thước chuẩn nhãn y tế mini dán lọ • QĐ 2429/QĐ-BYT</p>
+        </div>
+        <button onclick="closeModal('modal-print-vial-label')" class="text-sky-200 hover:text-white">✕</button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <!-- Label Preview Container (Print Target) -->
+        <div id="vial-sticker-printable" class="p-4 bg-white border-2 border-dashed border-slate-400 rounded-xl font-sans text-slate-900 shadow-xs">
+          <!-- Injected by JavaScript -->
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <span class="text-[11px] text-slate-500">Hỗ trợ in nhiệt decal 60x40mm hoặc in máy in văn phòng.</span>
+          <div class="flex items-center gap-2">
+            <button onclick="closeModal('modal-print-vial-label')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs">Đóng</button>
+            <button onclick="executePrintVialLabel()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-sm flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+              <span>In Tem Ngay</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 15: Environmental Log Entry (BM.MT.01) -->
+  <div id="modal-env-log" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 my-8">
+      <div class="bg-teal-800 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-teal-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <h3 class="font-bold text-sm uppercase">Ghi Nhận Nhiệt Độ & Độ Ẩm Hàng Ngày (BM.MT.01)</h3>
+        </div>
+        <button onclick="closeModal('modal-env-log')" class="text-teal-200 hover:text-white">✕</button>
+      </div>
+
+      <div class="p-5 space-y-3.5 text-xs max-h-[82vh] overflow-y-auto">
+        <div id="env-modal-error" class="hidden p-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl"></div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Ngày ghi nhận:</label>
+            <input type="date" id="env-input-date" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Ca đo:</label>
+            <select id="env-input-shift" onchange="onEnvShiftChange()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-teal-800">
+              <option value="sang">Ca Sáng (08h00)</option>
+              <option value="chieu">Ca Chiều (14h00)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Giờ đo thực tế:</label>
+            <input type="text" id="env-input-time" value="08:00" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-center">
+          </div>
+        </div>
+
+        <!-- Chọn loại tủ để đánh nhiệt độ -->
+        <div class="p-3 bg-teal-50/70 border border-teal-200 rounded-2xl space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="font-extrabold text-teal-950 uppercase text-[11px] flex items-center gap-1.5">
+              <span>🎯 Chọn Loại Tủ / Vị Trí Cần Đánh Nhiệt Độ:</span>
+            </label>
+            <span class="text-[10px] text-teal-700 font-semibold">Tùy chọn ghi riêng từng tủ hoặc ghi tất cả</span>
+          </div>
+
+          <!-- Quick Pill Buttons -->
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <button type="button" id="pill-dev-all" onclick="selectDevicePill('all')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-teal-700 text-white shadow-xs transition">
+              🏢 Toàn Bộ Vị Trí
+            </button>
+            <button type="button" id="pill-dev-tl01" onclick="selectDevicePill('tl01')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 hover:bg-teal-100 border border-slate-200 transition">
+              🧊 Tủ Lạnh TL-01 (2-8°C)
+            </button>
+            <button type="button" id="pill-dev-tl02" onclick="selectDevicePill('tl02')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 hover:bg-teal-100 border border-slate-200 transition">
+              🧪 Tủ Lạnh TL-02 (Mẫu)
+            </button>
+            <button type="button" id="pill-dev-td01" onclick="selectDevicePill('td01')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 hover:bg-teal-100 border border-slate-200 transition">
+              ❄️ Tủ Đông TĐ-01 (≤-15°C)
+            </button>
+            <button type="button" id="pill-dev-ta01" onclick="selectDevicePill('ta01')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 hover:bg-teal-100 border border-slate-200 transition">
+              🌡️ Tủ Ấm TÂ-01 (37°C)
+            </button>
+            <button type="button" id="pill-dev-room" onclick="selectDevicePill('room')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 hover:bg-teal-100 border border-slate-200 transition">
+              🏢 Phòng Máy
+            </button>
+          </div>
+
+          <!-- Hidden/Direct dropdown -->
+          <select id="env-input-target-device" onchange="onTargetDeviceChange()" class="w-full p-2 bg-white border border-teal-300 rounded-xl text-xs font-bold text-teal-900">
+            <option value="all">🏢 Toàn bộ vị trí (Đo tổng hợp cả phòng và các tủ)</option>
+            <option value="tl01">🧊 Tủ Lạnh Hóa Chất & Sinh Phẩm (TL-01: 2.0 - 8.0°C)</option>
+            <option value="tl02">🧪 Tủ Lạnh Lưu Mẫu Bệnh Phẩm & Huyết Thanh (TL-02: 2.0 - 8.0°C)</option>
+            <option value="td01">❄️ Tủ Đông Âm Sâu Lưu Mẫu & QC (TĐ-01: ≤ -15.0°C)</option>
+            <option value="ta01">🌡️ Tủ Ấm Ủ Mẫu & Vi Sinh (TÂ-01: 35.0 - 37.0°C)</option>
+            <option value="room">🏢 Không Gian Phòng Máy Xét Nghiệm (PM-01: 18.0 - 25.0°C & 40 - 75%)</option>
+          </select>
+
+          <!-- Selected Device Banner -->
+          <div id="env-device-info-banner" class="p-2 bg-white/90 border border-teal-200 rounded-xl text-[11px] flex items-center justify-between">
+            <span class="font-bold text-teal-900" id="env-device-info-name">Đang chọn: Toàn bộ vị trí (Đo tổng hợp theo ca)</span>
+            <span class="font-mono font-bold text-teal-700 px-2 py-0.5 rounded bg-teal-50 border border-teal-200" id="env-device-info-limit">Chuẩn BM.MT.01</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <!-- Room Temp -->
+          <div id="box-env-room-temp" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 transition">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-800">1. Nhiệt độ phòng máy:</span>
+              <span class="text-[10px] font-bold text-slate-500">18.0 - 25.0°C</span>
+            </div>
+            <input type="number" step="0.1" id="env-input-room-temp" oninput="checkEnvInputThresholds()" placeholder="22.5" class="w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-sm text-center">
+          </div>
+
+          <!-- Room Humidity -->
+          <div id="box-env-room-hum" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 transition">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-800">2. Độ ẩm phòng máy:</span>
+              <span class="text-[10px] font-bold text-slate-500">40.0 - 75.0%</span>
+            </div>
+            <input type="number" step="0.1" id="env-input-room-hum" oninput="checkEnvInputThresholds()" placeholder="60.0" class="w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-sm text-center">
+          </div>
+
+          <!-- Fridge 1 Temp -->
+          <div id="box-env-tl01" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 transition">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-800">3. Tủ lạnh sinh phẩm (TL-01):</span>
+              <span class="text-[10px] font-bold text-teal-700">2.0 - 8.0°C</span>
+            </div>
+            <input type="number" step="0.1" id="env-input-fridge-temp" oninput="checkEnvInputThresholds()" placeholder="4.5" class="w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-sm text-center">
+          </div>
+
+          <!-- Fridge 2 Sample Temp -->
+          <div id="box-env-tl02" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 transition">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-800">4. Tủ lạnh mẫu lưu (TL-02):</span>
+              <span class="text-[10px] font-bold text-teal-700">2.0 - 8.0°C</span>
+            </div>
+            <input type="number" step="0.1" id="env-input-fridge-sample-temp" oninput="checkEnvInputThresholds()" placeholder="4.5" class="w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-sm text-center">
+          </div>
+
+          <!-- Freezer Temp -->
+          <div id="box-env-td01" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 transition">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-800">5. Tủ đông âm sâu (TĐ-01):</span>
+              <span class="text-[10px] font-bold text-cyan-700">≤ -15.0°C</span>
+            </div>
+            <input type="number" step="0.1" id="env-input-freezer-temp" oninput="checkEnvInputThresholds()" placeholder="-20.5" class="w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-sm text-center">
+          </div>
+
+          <!-- Incubator Temp -->
+          <div id="box-env-ta01" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 transition">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-800">6. Tủ ấm ủ mẫu (TÂ-01):</span>
+              <span class="text-[10px] font-bold text-amber-700">35.0 - 37.0°C</span>
+            </div>
+            <input type="number" step="0.1" id="env-input-incubator-temp" oninput="checkEnvInputThresholds()" placeholder="36.5" class="w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-sm text-center">
+          </div>
+        </div>
+
+        <!-- Realtime Alert Box -->
+        <div id="env-modal-warning-box" class="hidden p-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-xs space-y-1">
+          <div class="font-bold flex items-center gap-1.5">
+            <span>⚠️ CẢNH BÁO VƯỢT NGƯỠNG AN TOÀN:</span>
+          </div>
+          <div id="env-modal-warning-text" class="text-[11px] text-red-700"></div>
+        </div>
+
+        <!-- Corrective Action Box -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Hành động khắc phục / Xử lý sự cố (nếu có cảnh báo):</label>
+          <input type="text" id="env-input-action" placeholder="Bật thêm điều hòa / Kiểm tra gioăng tủ lạnh / Báo bộ phận kỹ thuật..." class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+        </div>
+
+        <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+          <button onclick="closeModal('modal-env-log')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Hủy</button>
+          <button onclick="submitSaveEnvLog()" class="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold shadow-sm">Lưu Ghi Nhận</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 16: Print Environment Log Sheet (BM.MT.01 Chuẩn A4 Ngang) -->
+  <div id="modal-print-env" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6">
+    <div id="env-modal-card" class="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[94vh] flex flex-col overflow-hidden border border-slate-200">
+      <!-- Modal Header Bar -->
+      <div class="bg-teal-900 text-white px-5 py-3.5 flex items-center justify-between border-b border-teal-800 shrink-0">
+        <div class="pr-4 min-w-0">
+          <h3 class="font-bold text-sm sm:text-base text-white truncate">Xem & In Sổ Theo Dõi Nhiệt Độ - Độ Ẩm (Biểu Mẫu BM.MT.01)</h3>
+          <p class="text-xs text-teal-200 truncate">Khổ A4 ngang • Chuẩn Quyết định 2429/QĐ-BYT & Tiêu chuẩn ISO 15189 • BV Đa Khoa Thiên Ân</p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button onclick="executePrintEnvSheet()" 
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span>In Sổ A4 Ngay</span>
+          </button>
+          <button onclick="closeModal('modal-print-env')" 
+            class="p-1.5 text-teal-200 hover:text-white hover:bg-teal-800 rounded-lg transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Printable Document Container -->
+      <div id="print-env-container" class="p-6 md:p-8 overflow-y-auto space-y-4 text-slate-800 bg-white leading-relaxed">
+        <!-- Rendered by module7_environment.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 max-w-sm pointer-events-none"></div>
+
+  <!-- Scripts -->
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/module1_schedule.js"></script>
+  <script src="/static/js/module2_leave.js"></script>
+  <script src="/static/js/module3_documents.js"></script>
+  <script src="/static/js/module4_profiles.js"></script>
+  <script src="/static/js/catalog_data.js"></script>
+  <script src="/static/js/module5_catalog.js"></script>
+  <script src="/static/js/module6_inventory.js"></script>
+  <script src="/static/js/module7_environment.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "khoa-xet-nghiem-thien-an",
+  "version": "1.0.0",
+  "description": "Hệ thống Quản lý Nội bộ Khoa Xét nghiệm - BV Đa khoa Thiên Ân Viễn Đông (QĐ 2429/QĐ-BYT)",
+  "scripts": {
+    "start": "uvicorn backend.main:app --host 0.0.0.0 --port 8000",
+    "dev": "uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload"
+  },
+  "keywords": [
+    "khoa-xet-nghiem",
+    "2429",
+    "cham-cong",
+    "benh-vien-thien-an"
+  ],
+  "author": "Khoa Xét Nghiệm - BV Thiên Ân Viễn Đông",
+  "license": "ISC"
+}

@@ -1,0 +1,217 @@
+/* CSS Theme for Khoa Xét Nghiệm - BV ĐK Thiên Ân Viễn Đông */
+:root {
+  --primary: #0284c7;
+  --primary-dark: #0369a1;
+  --primary-light: #e0f2fe;
+  --teal: #0d9488;
+  --teal-light: #ccfbf1;
+  --accent: #2563eb;
+  --danger: #ef4444;
+  --danger-light: #fee2e2;
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+  --success: #10b981;
+  --success-light: #d1fae5;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --bg-main: #f1f5f9;
+  --card-bg: #ffffff;
+  --border-color: #cbd5e1;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--text-main);
+  background-color: var(--bg-main);
+  margin: 0;
+  padding: 0;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* User Highlight Pulsing Border for Assigned Shifts */
+.user-highlight-shift {
+  border: 2px solid #0284c7 !important;
+  background-color: #f0f9ff !important;
+  position: relative;
+  box-shadow: 0 0 10px rgba(2, 132, 199, 0.25) !important;
+}
+
+.user-highlight-badge {
+  background: linear-gradient(135deg, #0284c7, #0d9488);
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 9999px;
+  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Medical Staffing Warning Alert */
+.staffing-warning-card {
+  border-left: 5px solid #ef4444;
+  background: linear-gradient(to right, #fef2f2, #ffffff);
+  animation: pulse-soft 2s infinite ease-in-out;
+}
+
+@keyframes pulse-soft {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.2); }
+  50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+}
+
+/* Calendar Days */
+.calendar-day-cell {
+  min-height: 110px;
+  transition: all 0.15s ease-in-out;
+}
+.calendar-day-cell:hover {
+  background-color: #f8fafc;
+  transform: translateY(-1px);
+}
+.calendar-day-warning {
+  background-color: #fff1f2 !important;
+  border: 2px solid #f87171 !important;
+}
+
+/* Document Hub Extension Badges */
+.badge-docx {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+.badge-xlsx {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.badge-pdf {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+/* Official Leave Form Style (A4 Medical standard) */
+.official-leave-paper {
+  font-family: "Times New Roman", Times, serif;
+  line-height: 1.5;
+  color: #000000;
+  background-color: #ffffff;
+  padding: 30px 40px;
+}
+
+/* Print Layout */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+  }
+  /* Hide everything on page when printing */
+  body > * {
+    display: none !important;
+  }
+  /* Show only the target print container */
+  #print-leave-container, #print-leave-container * {
+    display: block !important;
+  }
+  #print-leave-container {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 20px 30px !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .no-print, button, .modal-backdrop {
+    display: none !important;
+  }
+
+  /* Print for Catalog Document Viewer */
+  body:has(#catalog-doc-modal:not(.hidden)) * {
+    visibility: hidden;
+  }
+  #catalog-doc-modal, #catalog-modal-content, #catalog-modal-content * {
+    visibility: visible !important;
+  }
+  #catalog-doc-modal {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: 99999 !important;
+    display: block !important;
+  }
+  #catalog-modal-header-bar, #catalog-modal-close-btn, #catalog-modal-print-btn, #catalog-modal-copy-btn {
+    display: none !important;
+  }
+  #catalog-modal-card {
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  #catalog-modal-content {
+    padding: 10mm 15mm !important;
+  }
+
+  /* Print for Official Forecast Sheet (Chuẩn A4 Y Tế) */
+  body:has(#modal-print-forecast:not(.hidden)) * {
+    visibility: hidden;
+  }
+  #modal-print-forecast, #print-forecast-container, #print-forecast-container * {
+    visibility: visible !important;
+  }
+  #modal-print-forecast {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: 99999 !important;
+    display: block !important;
+  }
+  #forecast-modal-header-bar, #forecast-modal-close-btn, #forecast-modal-print-btn {
+    display: none !important;
+  }
+  #forecast-modal-card {
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  #print-forecast-container {
+    padding: 10mm 15mm !important;
+  }
+}

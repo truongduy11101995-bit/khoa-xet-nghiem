@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: khoa-xet-nghiem
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: DATABASE_URL
+        sync: false
+      - key: ALLOWED_OFFICE_IPS
+        value: "*"
+      - key: ADMIN_BYPASS_KEY
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: TOKEN_EXPIRE_HOURS
+        value: "168"
