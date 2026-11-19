@@ -60,6 +60,23 @@ async function initApp() {
   // Clock
   updateClock();
   setInterval(updateClock, 1000);
+
+  // Client-side Keep-Alive ping every 4 minutes to prevent Cloud sleep
+  setInterval(() => {
+    fetch('/api/health').catch(() => {});
+  }, 240000);
+
+  // Global Escape key listener to close any active modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (typeof closeDocumentViewer === 'function') closeDocumentViewer();
+      if (typeof closeDocPreviewModal === 'function') closeDocPreviewModal();
+      document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach(m => {
+        m.classList.add('hidden');
+      });
+      document.body.classList.remove('overflow-hidden');
+    }
+  });
 }
 
 function renderUserHeader() {
@@ -232,10 +249,10 @@ function switchModule(modName) {
     if (!btn || !view) return;
 
     if (key === modName) {
-      btn.className = "flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm bg-sky-700 text-white shadow-md transition";
+      btn.className = "flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-sky-700 text-white shadow-md whitespace-nowrap";
       view.classList.remove('hidden');
     } else {
-      btn.className = "flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition";
+      btn.className = "flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 whitespace-nowrap";
       view.classList.add('hidden');
     }
   });

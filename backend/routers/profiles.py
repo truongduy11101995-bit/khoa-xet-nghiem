@@ -6,10 +6,22 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile
 from fastapi.responses import FileResponse
 from backend.database import get_db
 from backend.auth import get_current_user, require_admin
-from backend.config import HO_SO_DIR
+from backend.config import HO_SO_DIR, FRONTEND_DIR
 from backend.models import ProfileUpdateRequest
 
 router = APIRouter(prefix="/api/profiles", tags=["Employee Profiles"])
+
+def resolve_employee_file_path(raw_path: str, file_name: str) -> Path:
+    """Resolve employee file path across D: drive and Cloud bundled frontend/assets/ho_so_nhan_su."""
+    p = Path(raw_path)
+    if p.exists() and p.is_file():
+        return p
+    cloud_base = FRONTEND_DIR / "assets" / "ho_so_nhan_su"
+    if cloud_base.exists():
+        for fp in cloud_base.rglob("*"):
+            if fp.is_file() and fp.name == file_name:
+                return fp
+    return p
 
 def check_profile_access(target_user_id: int, current_user: dict):
     """Enforce rule: Only target employee or Trưởng khoa / KTV Trưởng can access."""
@@ -200,9 +212,9 @@ def download_employee_file(
     if not f:
         raise HTTPException(status_code=404, detail="Không tìm thấy tệp hồ sơ này.")
 
-    file_path = Path(f["file_path"])
+    file_path = resolve_employee_file_path(f["file_path"], f["file_name"])
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail="Tệp tin không tồn tại trên ổ D.")
+        raise HTTPException(status_code=404, detail="Tệp tin không tồn tại trên hệ thống.")
 
     return FileResponse(
         path=str(file_path),
@@ -228,9 +240,9 @@ def preview_employee_file(
     if not f:
         raise HTTPException(status_code=404, detail="Không tìm thấy tệp hồ sơ này.")
 
-    file_path = Path(f["file_path"])
+    file_path = resolve_employee_file_path(f["file_path"], f["file_name"])
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail="Tệp tin không tồn tại trên ổ D.")
+        raise HTTPException(status_code=404, detail="Tệp tin không tồn tại trên hệ thống.")
 
     ext = file_path.suffix.lstrip(".").lower()
     media_types = {

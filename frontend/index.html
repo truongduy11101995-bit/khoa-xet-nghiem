@@ -34,7 +34,7 @@
           <div id="live-clock" class="text-xs font-bold text-slate-700 font-mono">--:--:--</div>
           <div id="storage-status-badge" class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1 mt-0.5">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span id="storage-status-text">Ổ D:\KHOA_XET_NGHIEM_DATA\</span>
+            <span id="storage-status-text">Cloud Supabase (Online 24/7)</span>
           </div>
         </div>
 
@@ -85,11 +85,11 @@
         </div>
         <div class="flex items-center gap-1.5">
           <span class="text-sky-200">Biểu mẫu 2429:</span>
-          <span id="stat-total-docs" class="font-extrabold bg-white/15 px-2 py-0.5 rounded">--</span>
+          <span id="stat-total-docs" class="font-extrabold bg-white/15 px-2 py-0.5 rounded">147 biểu mẫu</span>
         </div>
         <div class="flex items-center gap-1.5">
           <span class="text-sky-200">Kho hóa chất:</span>
-          <span id="stat-total-inventory" class="font-extrabold bg-white/15 px-2 py-0.5 rounded">29 mục</span>
+          <span id="stat-total-inventory" class="font-extrabold bg-white/15 px-2 py-0.5 rounded">135 mục</span>
         </div>
       </div>
 
@@ -109,34 +109,34 @@
   <div class="bg-white border-b border-slate-200 shadow-sm sticky top-[60px] z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between overflow-x-auto py-2">
       <nav class="flex items-center space-x-1 sm:space-x-2">
-        <button id="tab-schedule" onclick="switchModule('schedule')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm bg-sky-700 text-white shadow-md transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-          <span>1. Phân Công Vị Trí & Lịch Trực</span>
+        <button id="tab-schedule" onclick="switchModule('schedule')" class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-sky-700 text-white shadow-md whitespace-nowrap">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+          <span>1. Phân Công & Lịch Trực</span>
         </button>
 
-        <button id="tab-leave" onclick="switchModule('leave')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <button id="tab-leave" onclick="switchModule('leave')" class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 whitespace-nowrap">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
           <span>2. Lịch Tháng & Nghỉ Phép</span>
         </button>
 
-        <button id="tab-documents" onclick="switchModule('documents')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-          <span>3. Kho Hồ Sơ, Biểu Mẫu & Mục Lục 10 Cuốn (2429 & ATSH Cấp II)</span>
+        <button id="tab-documents" onclick="switchModule('documents')" class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 whitespace-nowrap">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          <span>3. Hồ Sơ, Biểu Mẫu & 10 Cuốn (2429)</span>
         </button>
 
-        <button id="tab-inventory" onclick="switchModule('inventory')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-          <span>4. Quản Lý Kho Hóa Chất & Vật Tư</span>
+        <button id="tab-inventory" onclick="switchModule('inventory')" class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 whitespace-nowrap">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          <span>4. Kho Hóa Chất & Vật Tư</span>
         </button>
 
-        <button id="tab-profiles" onclick="switchModule('profiles')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-          <span>5. Hồ Sơ Cán Bộ Nhân Viên (04 Nhân Sự)</span>
+        <button id="tab-profiles" onclick="switchModule('profiles')" class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 whitespace-nowrap">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          <span>5. Hồ Sơ Nhân Sự (04 CB)</span>
         </button>
 
-        <button id="tab-environment" onclick="switchModule('environment')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-          <span>6. Sổ Nhiệt Độ & Môi Trường (BM.MT.01)</span>
+        <button id="tab-environment" onclick="switchModule('environment')" class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 whitespace-nowrap">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span>6. Sổ Nhiệt Độ & Môi Trường</span>
         </button>
       </nav>
     </div>
@@ -338,12 +338,12 @@
               <div class="text-[10px] font-semibold text-sky-200 uppercase mt-0.5">11 Tập Bìa Còng</div>
             </div>
             <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center">
-              <div id="stat-total-docs" class="text-lg sm:text-xl font-black text-emerald-300">147</div>
+              <div id="catalog-stat-total-docs" class="text-lg sm:text-xl font-black text-emerald-300">147</div>
               <div class="text-[10px] font-semibold text-sky-200 uppercase mt-0.5">Tài Liệu Toàn Văn</div>
             </div>
             <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center">
-              <div id="stat-total-disk-files" class="text-lg sm:text-xl font-black text-sky-300">523 Files</div>
-              <div class="text-[10px] font-semibold text-sky-200 uppercase mt-0.5">12 Nhóm Ổ D:\</div>
+              <div id="stat-total-disk-files" class="text-lg sm:text-xl font-black text-sky-300">603 Files</div>
+              <div class="text-[10px] font-semibold text-sky-200 uppercase mt-0.5">14 Nhóm Hồ Sơ</div>
             </div>
             <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center">
               <div class="text-lg sm:text-xl font-black text-teal-300">100%</div>
@@ -760,11 +760,11 @@
         </div>
         <div class="flex items-center gap-2 flex-wrap">
           <button id="btn-add-inventory-item" onclick="openAddInventoryModal()" class="px-3.5 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            <span>+ Thêm Mặt Hàng</span>
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>Thêm Mặt Hàng</span>
           </button>
           <button onclick="exportInventoryExcel()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="Xuất file Excel tồn kho và thẻ kho">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             <span>Xuất Excel Tồn Kho</span>
           </button>
         </div>
@@ -778,7 +778,7 @@
           </div>
           <div>
             <div class="text-[11px] font-semibold text-slate-500 uppercase">Tổng Danh Mục Kho</div>
-            <div id="inv-kpi-total" class="text-base sm:text-lg font-extrabold text-slate-900 mt-0.5">29 Mặt Hàng</div>
+            <div id="inv-kpi-total" class="text-base sm:text-lg font-extrabold text-slate-900 mt-0.5">135 Mặt Hàng</div>
           </div>
         </div>
 
@@ -921,8 +921,8 @@
 
             <div class="flex items-center gap-2 flex-wrap">
               <button id="btn-forecast-autocalc" onclick="autoCalculateForecast()" class="px-3.5 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="Tự động tính đề xuất dựa trên tồn kho và mức tiêu hao">
-                <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                <span>⚡ Tự Động Tính Đề Xuất</span>
+                <svg class="w-4 h-4 text-amber-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span>Tự Động Tính Đề Xuất</span>
               </button>
               <button id="btn-forecast-save" onclick="saveForecastPlan()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
@@ -1046,8 +1046,8 @@
                 <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
               </div>
               <button onclick="openAddVialModal()" class="px-3.5 py-1.5 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                <span>+ Ghi Nhận Mở Lọ</span>
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>Ghi Nhận Mở Lọ</span>
               </button>
             </div>
           </div>
@@ -1122,13 +1122,13 @@
 
     <!-- ================= VIEW 5: MODULE 5 EMPLOYEE PROFILES ================= -->
     <section id="view-profiles" class="hidden space-y-4">
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <h3 class="text-sm font-bold text-slate-900 uppercase">HỒ SƠ CÁN BỘ NHÂN VIÊN KHOA XÉT NGHIỆM</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Hồ sơ 04 cán bộ chính thức của Khoa • Lưu trữ scan an toàn tại <code>D:\KHOA_XET_NGHIEM_DATA\HO_SO_NHAN_SU\</code></p>
+          <p class="text-xs text-slate-500 mt-0.5">Hồ sơ 04 cán bộ chính thức của Khoa • Đồng bộ trực tuyến Cloud 24/7 &amp; Lưu trữ cục bộ</p>
         </div>
         <div class="text-xs font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-          Chính sách bảo mật: Cá nhân chỉ xem hồ sơ của mình & Trưởng khoa/KTV Trưởng
+          Chính sách bảo mật: Cá nhân chỉ xem hồ sơ của mình &amp; Trưởng khoa/KTV Trưởng
         </div>
       </div>
 
@@ -1139,7 +1139,7 @@
     </section>
 
     <!-- ================= VIEW 6: MODULE 6 ENVIRONMENT (SỔ NHIỆT ĐỘ & MÔI TRƯỜNG BM.MT.01) ================= -->
-    <section id="view-environment" class="hidden space-y-6">
+    <section id="view-environment" class="hidden space-y-5">
       <!-- Title & Action Banner -->
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
@@ -1152,108 +1152,164 @@
               <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-teal-100 text-teal-800 border border-teal-200">BIỂU MẪU BM.MT.01</span>
               <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-sky-100 text-sky-800 border border-sky-200">QĐ 2429 / ISO 15189</span>
             </div>
-            <p class="text-xs text-slate-500 mt-0.5">Theo dõi điều kiện môi trường phòng xét nghiệm, tủ lạnh sinh phẩm 2-8°C và tủ đông âm sâu -20°C (2 ca/ngày) • BVĐK Thiên Ân</p>
+            <p class="text-xs text-slate-500 mt-0.5">Giám sát 6 chỉ số: Phòng máy (Nhiệt độ &amp; Độ ẩm), Tủ lạnh hóa chất (TL-01), Tủ lạnh mẫu lưu (TL-02), Tủ đông (TĐ-01) và Tủ ấm (TÂ-01)</p>
           </div>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
           <button onclick="openEnvLogModal()" class="px-3.5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            <span>+ Ghi Nhận Ca Mới</span>
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>Ghi Nhận Ca Mới</span>
           </button>
           <button onclick="openPrintEnvModal()" class="px-3.5 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="In biểu mẫu BM.MT.01 chuẩn nộp đoàn kiểm tra Sở Y Tế">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-            <span>🖨️ Xuất / In Sổ BM.MT.01 (A4)</span>
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span>Xuất / In Sổ BM.MT.01 (A4)</span>
           </button>
         </div>
       </div>
 
-      <!-- 4 KPI Environment Status Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Today Shift Measurement Status Banner -->
+      <div id="env-today-shift-banner" class="bg-teal-50/90 border border-teal-200 rounded-2xl p-3 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-base">🌡️</span>
+          <span id="env-today-shift-text" class="font-semibold text-teal-950">Đang kiểm tra trạng thái đo nhiệt độ hôm nay...</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="env-today-badge-sang" class="px-2.5 py-1 rounded-lg font-bold bg-white text-slate-600 border border-slate-200">Ca Sáng (08h): --</span>
+          <span id="env-today-badge-chieu" class="px-2.5 py-1 rounded-lg font-bold bg-white text-slate-600 border border-slate-200">Ca Chiều (14h): --</span>
+        </div>
+      </div>
+
+      <!-- 6 KPI Environment Status Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
         <!-- Card 1: Phòng Xét Nghiệm Temp -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span class="text-xs font-bold text-slate-700 uppercase">Nhiệt Độ Phòng Máy</span>
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div class="flex items-center justify-between gap-1">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+              <span class="text-[11px] font-bold text-slate-700 uppercase">Phòng Máy (PM-01)</span>
             </div>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">18 - 25°C</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 whitespace-nowrap">18-25°C</span>
           </div>
-          <div class="my-3 flex items-baseline gap-2">
-            <span id="env-kpi-room-temp" class="text-2xl sm:text-3xl font-black text-slate-900 font-mono">--°C</span>
+          <div class="my-2.5 flex items-baseline gap-2">
+            <span id="env-kpi-room-temp" class="text-2xl font-black text-slate-900 font-mono">--°C</span>
             <span id="env-kpi-room-temp-status" class="text-[11px] font-bold text-emerald-600">Đạt chuẩn</span>
           </div>
-          <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between">
+          <div class="pt-2 border-t border-slate-100 text-[10px] text-slate-500 flex justify-between">
             <span>TB: <strong id="env-kpi-room-temp-avg" class="text-slate-700 font-mono">--</strong></span>
-            <span>Min/Max: <strong id="env-kpi-room-temp-range" class="text-slate-700 font-mono">--</strong></span>
+            <span>Dải: <strong id="env-kpi-room-temp-range" class="text-slate-700 font-mono">--</strong></span>
           </div>
-          <button onclick="openEnvLogModal('room')" class="w-full mt-2.5 py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold rounded-xl border border-emerald-200 transition flex items-center justify-center gap-1.5 shadow-xs">
-            <span>⚡ Đánh Nhiệt Độ Phòng Máy</span>
+          <button onclick="openEnvLogModal('room')" class="w-full mt-2 py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold rounded-xl border border-emerald-200 transition flex items-center justify-center gap-1 shadow-2xs">
+            <span>📝 Nhập Số Đo Phòng</span>
           </button>
         </div>
 
         <!-- Card 2: Phòng Xét Nghiệm Humidity -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-              <span class="text-xs font-bold text-slate-700 uppercase">Độ Ẩm Không Khí</span>
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div class="flex items-center justify-between gap-1">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+              <span class="text-[11px] font-bold text-slate-700 uppercase">Độ Ẩm Phòng Máy</span>
             </div>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">40 - 75%</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 whitespace-nowrap">40-75%</span>
           </div>
-          <div class="my-3 flex items-baseline gap-2">
-            <span id="env-kpi-room-hum" class="text-2xl sm:text-3xl font-black text-slate-900 font-mono">--%</span>
+          <div class="my-2.5 flex items-baseline gap-2">
+            <span id="env-kpi-room-hum" class="text-2xl font-black text-slate-900 font-mono">--%</span>
             <span id="env-kpi-room-hum-status" class="text-[11px] font-bold text-blue-600">Ổn định</span>
           </div>
-          <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between">
+          <div class="pt-2 border-t border-slate-100 text-[10px] text-slate-500 flex justify-between">
             <span>TB: <strong id="env-kpi-room-hum-avg" class="text-slate-700 font-mono">--</strong></span>
-            <span>Min/Max: <strong id="env-kpi-room-hum-range" class="text-slate-700 font-mono">--</strong></span>
+            <span>Dải: <strong id="env-kpi-room-hum-range" class="text-slate-700 font-mono">--</strong></span>
           </div>
-          <button onclick="openEnvLogModal('room')" class="w-full mt-2.5 py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-blue-800 text-[11px] font-bold rounded-xl border border-blue-200 transition flex items-center justify-center gap-1.5 shadow-xs">
-            <span>⚡ Đánh Độ Ẩm Phòng Máy</span>
+          <button onclick="openEnvLogModal('room')" class="w-full mt-2 py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-blue-800 text-[11px] font-bold rounded-xl border border-blue-200 transition flex items-center justify-center gap-1 shadow-2xs">
+            <span>📝 Nhập Độ Ẩm Phòng</span>
           </button>
         </div>
 
-        <!-- Card 3: Tủ Lạnh 2-8°C -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
-              <span class="text-xs font-bold text-slate-700 uppercase">Tủ Lạnh Sinh Phẩm (TL-01)</span>
+        <!-- Card 3: Tủ Lạnh Sinh Phẩm TL-01 (2-8°C) -->
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div class="flex items-center justify-between gap-1">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-teal-500 shrink-0"></span>
+              <span class="text-[11px] font-bold text-slate-700 uppercase">Tủ Lạnh HC (TL-01)</span>
             </div>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-800">2.0 - 8.0°C</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-teal-100 text-teal-800 whitespace-nowrap">2-8°C</span>
           </div>
-          <div class="my-3 flex items-baseline gap-2">
-            <span id="env-kpi-fridge-temp" class="text-2xl sm:text-3xl font-black text-slate-900 font-mono">--°C</span>
+          <div class="my-2.5 flex items-baseline gap-2">
+            <span id="env-kpi-fridge-temp" class="text-2xl font-black text-slate-900 font-mono">--°C</span>
             <span id="env-kpi-fridge-temp-status" class="text-[11px] font-bold text-teal-600">Bảo quản tốt</span>
           </div>
-          <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between">
+          <div class="pt-2 border-t border-slate-100 text-[10px] text-slate-500 flex justify-between">
             <span>TB: <strong id="env-kpi-fridge-temp-avg" class="text-slate-700 font-mono">--</strong></span>
-            <span>Min/Max: <strong id="env-kpi-fridge-temp-range" class="text-slate-700 font-mono">--</strong></span>
+            <span>Dải: <strong id="env-kpi-fridge-temp-range" class="text-slate-700 font-mono">--</strong></span>
           </div>
-          <button onclick="openEnvLogModal('tl01')" class="w-full mt-2.5 py-1.5 px-2 bg-teal-50 hover:bg-teal-100 text-teal-800 text-[11px] font-bold rounded-xl border border-teal-200 transition flex items-center justify-center gap-1.5 shadow-xs">
-            <span>⚡ Đánh Nhiệt Độ Tủ Lạnh (2-8°C)</span>
+          <button onclick="openEnvLogModal('tl01')" class="w-full mt-2 py-1.5 px-2 bg-teal-50 hover:bg-teal-100 text-teal-800 text-[11px] font-bold rounded-xl border border-teal-200 transition flex items-center justify-center gap-1 shadow-2xs">
+            <span>📝 Nhập Tủ Lạnh TL-01</span>
           </button>
         </div>
 
-        <!-- Card 4: Tủ Đông Lưu Mẫu -20°C -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>
-              <span class="text-xs font-bold text-slate-700 uppercase">Tủ Đông Âm Sâu (TĐ-01)</span>
+        <!-- Card 4: Tủ Lạnh Lưu Mẫu TL-02 (2-8°C) -->
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div class="flex items-center justify-between gap-1">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></span>
+              <span class="text-[11px] font-bold text-slate-700 uppercase">Tủ Lạnh Mẫu (TL-02)</span>
             </div>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-100 text-cyan-800">≤ -15°C</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 whitespace-nowrap">2-8°C</span>
           </div>
-          <div class="my-3 flex items-baseline gap-2">
-            <span id="env-kpi-freezer-temp" class="text-2xl sm:text-3xl font-black text-slate-900 font-mono">--°C</span>
+          <div class="my-2.5 flex items-baseline gap-2">
+            <span id="env-kpi-sample-temp" class="text-2xl font-black text-slate-900 font-mono">--°C</span>
+            <span id="env-kpi-sample-temp-status" class="text-[11px] font-bold text-indigo-600">Bảo quản tốt</span>
+          </div>
+          <div class="pt-2 border-t border-slate-100 text-[10px] text-slate-500 flex justify-between">
+            <span>TB: <strong id="env-kpi-sample-temp-avg" class="text-slate-700 font-mono">--</strong></span>
+            <span>Dải: <strong id="env-kpi-sample-temp-range" class="text-slate-700 font-mono">--</strong></span>
+          </div>
+          <button onclick="openEnvLogModal('tl02')" class="w-full mt-2 py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-[11px] font-bold rounded-xl border border-indigo-200 transition flex items-center justify-center gap-1 shadow-2xs">
+            <span>📝 Nhập Tủ Mẫu TL-02</span>
+          </button>
+        </div>
+
+        <!-- Card 5: Tủ Đông Lưu Mẫu TĐ-01 (<= -15°C) -->
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div class="flex items-center justify-between gap-1">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-cyan-500 shrink-0"></span>
+              <span class="text-[11px] font-bold text-slate-700 uppercase">Tủ Đông (TĐ-01)</span>
+            </div>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyan-100 text-cyan-800 whitespace-nowrap">≤ -15°C</span>
+          </div>
+          <div class="my-2.5 flex items-baseline gap-2">
+            <span id="env-kpi-freezer-temp" class="text-2xl font-black text-slate-900 font-mono">--°C</span>
             <span id="env-kpi-freezer-temp-status" class="text-[11px] font-bold text-cyan-700">Đạt âm sâu</span>
           </div>
-          <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between">
+          <div class="pt-2 border-t border-slate-100 text-[10px] text-slate-500 flex justify-between">
             <span>TB: <strong id="env-kpi-freezer-temp-avg" class="text-slate-700 font-mono">--</strong></span>
-            <span>Min/Max: <strong id="env-kpi-freezer-temp-range" class="text-slate-700 font-mono">--</strong></span>
+            <span>Dải: <strong id="env-kpi-freezer-temp-range" class="text-slate-700 font-mono">--</strong></span>
           </div>
-          <button onclick="openEnvLogModal('td01')" class="w-full mt-2.5 py-1.5 px-2 bg-cyan-50 hover:bg-cyan-100 text-cyan-800 text-[11px] font-bold rounded-xl border border-cyan-200 transition flex items-center justify-center gap-1.5 shadow-xs">
-            <span>⚡ Đánh Nhiệt Độ Tủ Đông (≤-15°C)</span>
+          <button onclick="openEnvLogModal('td01')" class="w-full mt-2 py-1.5 px-2 bg-cyan-50 hover:bg-cyan-100 text-cyan-800 text-[11px] font-bold rounded-xl border border-cyan-200 transition flex items-center justify-center gap-1 shadow-2xs">
+            <span>📝 Nhập Tủ Đông TĐ-01</span>
+          </button>
+        </div>
+
+        <!-- Card 6: Tủ Ấm Ủ Mẫu TÂ-01 (35-37°C) -->
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div class="flex items-center justify-between gap-1">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+              <span class="text-[11px] font-bold text-slate-700 uppercase">Tủ Ấm (TÂ-01)</span>
+            </div>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 whitespace-nowrap">35-37°C</span>
+          </div>
+          <div class="my-2.5 flex items-baseline gap-2">
+            <span id="env-kpi-incubator-temp" class="text-2xl font-black text-slate-900 font-mono">--°C</span>
+            <span id="env-kpi-incubator-temp-status" class="text-[11px] font-bold text-amber-700">Đạt chuẩn 37°C</span>
+          </div>
+          <div class="pt-2 border-t border-slate-100 text-[10px] text-slate-500 flex justify-between">
+            <span>TB: <strong id="env-kpi-incubator-temp-avg" class="text-slate-700 font-mono">--</strong></span>
+            <span>Dải: <strong id="env-kpi-incubator-temp-range" class="text-slate-700 font-mono">--</strong></span>
+          </div>
+          <button onclick="openEnvLogModal('ta01')" class="w-full mt-2 py-1.5 px-2 bg-amber-50 hover:bg-amber-100 text-amber-800 text-[11px] font-bold rounded-xl border border-amber-200 transition flex items-center justify-center gap-1 shadow-2xs">
+            <span>📝 Nhập Tủ Ấm TÂ-01</span>
           </button>
         </div>
       </div>
@@ -1287,25 +1343,12 @@
             <span class="text-slate-300">|</span>
             <label class="text-xs font-bold text-slate-700">Bộ Lọc Tủ / Vị Trí:</label>
             <select id="env-filter-device" onchange="filterEnvTableByDevice()" class="p-1.5 bg-white border border-teal-300 rounded-xl text-xs font-bold text-teal-900">
-              <option value="all">🏢 Tất Cả Các Tủ & Phòng Máy</option>
-              <option value="tl01">🧊 Tủ Lạnh Hóa Chất & Sinh Phẩm (TL-01: 2-8°C)</option>
+              <option value="all">🏢 Tất Cả Các Tủ &amp; Phòng Máy</option>
+              <option value="tl01">🧊 Tủ Lạnh Hóa Chất &amp; Sinh Phẩm (TL-01: 2-8°C)</option>
               <option value="tl02">🧪 Tủ Lạnh Mẫu Bệnh Phẩm (TL-02: 2-8°C)</option>
               <option value="td01">❄️ Tủ Đông Âm Sâu (TĐ-01: ≤ -15°C)</option>
               <option value="ta01">🌡️ Tủ Ấm (TÂ-01: 35-37°C)</option>
-              <option value="room">🏢 Không Gian Phòng Máy (18-25°C & 40-75%)</option>
-            </select>
-              <option value="6">Tháng 06</option>
-              <option value="7">Tháng 07</option>
-              <option value="8">Tháng 08</option>
-              <option value="9">Tháng 09</option>
-              <option value="10">Tháng 10</option>
-              <option value="11" selected>Tháng 11</option>
-              <option value="12">Tháng 12</option>
-            </select>
-            <select id="env-select-year" onchange="loadEnvironmentLogs()" class="p-1.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800">
-              <option value="2025">Năm 2025</option>
-              <option value="2026" selected>Năm 2026</option>
-              <option value="2027">Năm 2027</option>
+              <option value="room">🏢 Không Gian Phòng Máy (18-25°C &amp; 40-75%)</option>
             </select>
             <button onclick="loadEnvironmentLogs()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl text-xs transition">
               Tải Lại
@@ -1314,8 +1357,8 @@
 
           <div class="flex items-center gap-3 text-xs">
             <span class="text-slate-500">Tổng lượt ghi: <strong id="env-stat-total" class="text-slate-800 font-bold">0</strong></span>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">🟢 An toàn: <span id="env-stat-safe">0</span></span>
-            <span class="px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-bold">🔴 Cảnh báo: <span id="env-stat-warning">0</span></span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold whitespace-nowrap">🟢 An toàn: <span id="env-stat-safe">0</span></span>
+            <span class="px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-bold whitespace-nowrap">🔴 Cảnh báo: <span id="env-stat-warning">0</span></span>
           </div>
         </div>
 
@@ -1325,16 +1368,18 @@
             <thead>
               <tr class="bg-slate-100 text-slate-700 uppercase font-bold text-[11px] border-b border-slate-200 tracking-wider">
                 <th class="p-2.5 text-center w-10">STT</th>
-                <th class="p-2.5 w-28 text-center">Ngày Đo</th>
+                <th class="p-2.5 w-24 text-center">Ngày Đo</th>
                 <th class="p-2.5 w-24 text-center">Ca / Giờ</th>
-                <th class="p-2.5 text-right w-32">Nhiệt Độ Phòng (18-25°C)</th>
-                <th class="p-2.5 text-right w-28">Độ Ẩm Phòng (40-75%)</th>
-                <th class="p-2.5 text-right w-32">Tủ Lạnh (2-8°C)</th>
-                <th class="p-2.5 text-right w-32">Tủ Đông (≤ -15°C)</th>
-                <th class="p-2.5 text-center w-28">Đánh Giá</th>
-                <th class="p-2.5 min-w-[200px]">Cảnh Báo & Khắc Phục</th>
-                <th class="p-2.5 w-32">KTV Ghi Nhận</th>
-                <th class="p-2.5 w-32">Ký Duyệt</th>
+                <th class="p-2.5 text-right w-24">Phòng Máy (18-25°C)</th>
+                <th class="p-2.5 text-right w-20">Độ Ẩm (40-75%)</th>
+                <th class="p-2.5 text-right w-24">TL Hóa Chất TL-01 (2-8°C)</th>
+                <th class="p-2.5 text-right w-24">TL Mẫu Lưu TL-02 (2-8°C)</th>
+                <th class="p-2.5 text-right w-24">Tủ Đông TĐ-01 (≤-15°C)</th>
+                <th class="p-2.5 text-right w-24">Tủ Ấm TÂ-01 (35-37°C)</th>
+                <th class="p-2.5 text-center w-24">Đánh Giá</th>
+                <th class="p-2.5 min-w-[160px]">Cảnh Báo &amp; Khắc Phục</th>
+                <th class="p-2.5 w-28">KTV Ghi Nhận</th>
+                <th class="p-2.5 w-28">Ký Duyệt</th>
               </tr>
             </thead>
             <tbody id="env-logs-tbody">

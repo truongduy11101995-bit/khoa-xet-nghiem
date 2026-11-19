@@ -123,7 +123,7 @@ def get_leave_calendar(
         FROM leave_requests l
         JOIN users u ON l.user_id = u.id
         LEFT JOIN users reviewer ON l.reviewed_by = reviewer.id
-        WHERE l.leave_date >= ? AND l.leave_date <= ?
+        WHERE l.leave_date >= ? AND l.leave_date <= ? AND l.status != 'rejected'
         ORDER BY l.leave_date ASC, l.created_at ASC
     """, (start_date, end_date))
     rows = [dict(r) for r in cursor.fetchall()]

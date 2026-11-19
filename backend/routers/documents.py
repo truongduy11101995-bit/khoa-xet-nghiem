@@ -1,16 +1,91 @@
 import os
+import io
+import json
 import shutil
+import zipfile
 from pathlib import Path
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from backend.database import get_db
 from backend.auth import get_current_user, require_admin
 from backend.config import (
-    BIEU_MAU_DIR, BIEU_MAU_PHIEU_KQ, BIEU_MAU_2429, BIEU_MAU_HANH_CHINH, HO_SO_10_CUON_DIR
+    BIEU_MAU_DIR, BIEU_MAU_PHIEU_KQ, BIEU_MAU_2429, BIEU_MAU_HANH_CHINH, HO_SO_10_CUON_DIR, FRONTEND_DIR
 )
 
 router = APIRouter(prefix="/api/documents", tags=["Document Hub"])
+
+def extract_from_cloud_bins(rel_path: str) -> Optional[bytes]:
+    """Extract exact file bytes from cloud_docs_part1..3.bin and restore shared logo if needed."""
+    norm_rel = rel_path.replace("\\", "/").lstrip("/")
+    backend_dir = Path(__file__).resolve().parent.parent
+    raw_bytes = None
+    for idx in (1, 2, 3):
+        bin_path = backend_dir / f"cloud_docs_part{idx}.bin"
+        if bin_path.exists():
+            try:
+                with zipfile.ZipFile(bin_path, "r") as z:
+                    if norm_rel in z.namelist():
+                        raw_bytes = z.read(norm_rel)
+                        break
+                    # Fallback match by filename
+                    target_name = Path(norm_rel).name.lower()
+                    for name in z.namelist():
+                        if Path(name).name.lower() == target_name:
+                            raw_bytes = z.read(name)
+                            break
+                    if raw_bytes is not None:
+                        break
+            except Exception:
+                pass
+
+    if raw_bytes is None:
+        return None
+
+    if norm_rel.lower().endswith(".docx"):
+        try:
+            with zipfile.ZipFile(io.BytesIO(raw_bytes), "r") as in_z:
+                needs_logo = any(
+                    info.filename.startswith("word/media/") and info.file_size == 15
+                    for info in in_z.infolist()
+                )
+                if needs_logo:
+                    logo_path = FRONTEND_DIR / "img" / "logo_thien_an.png"
+                    logo_bytes = logo_path.read_bytes() if logo_path.exists() else b""
+                    out_buf = io.BytesIO()
+                    with zipfile.ZipFile(out_buf, "w", zipfile.ZIP_DEFLATED) as out_z:
+                        for info in in_z.infolist():
+                            data = in_z.read(info.filename)
+                            if data == b"__SHARED_LOGO__" and logo_bytes:
+                                data = logo_bytes
+                            out_z.writestr(info.filename, data)
+                    return out_buf.getvalue()
+        except Exception:
+            pass
+
+    return raw_bytes
+
+def resolve_cloud_document_path(raw_path: str, file_name: str) -> Path:
+    """Resolve document file across local D: drive and Cloud bundled frontend/assets."""
+    if raw_path:
+        p = Path(raw_path)
+        if p.exists() and p.is_file():
+            return p
+    assets_dir = FRONTEND_DIR / "assets"
+    if assets_dir.exists() and file_name:
+        for fp in assets_dir.rglob("*"):
+            if fp.is_file() and fp.name.lower() == file_name.lower():
+                return fp
+        # Fallback to stem match
+        stem = Path(file_name).stem.lower()
+        for fp in assets_dir.rglob("*"):
+            if fp.is_file() and fp.stem.lower() == stem:
+                return fp
+    # Ultimate fallback on Cloud: All-in-One 10 Cuốn docx
+    all_in_one = assets_dir / "docs_10_cuon" / "Tron_Bo_10_Cuon_Ho_So_QLCL_2429_Va_ATSH_Khoa_Xet_Nghiem_All_In_One.docx"
+    if all_in_one.exists():
+        return all_in_one
+    return Path(raw_path or file_name)
 
 CATEGORY_FOLDERS = {
     "phieu_kq_hen": BIEU_MAU_PHIEU_KQ,
@@ -84,9 +159,9 @@ def download_document(
     if not doc:
         raise HTTPException(status_code=404, detail="Không tìm thấy tài liệu này.")
 
-    file_path = Path(doc["file_path"])
+    file_path = resolve_cloud_document_path(doc["file_path"], doc["file_name"])
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail=f"Tệp tin không tồn tại trên ổ D: ({doc['file_name']})")
+        raise HTTPException(status_code=404, detail=f"Tệp tin không tồn tại trên hệ thống: ({doc['file_name']})")
 
     # Determine media type
     media_types = {
@@ -122,7 +197,7 @@ def preview_document(
     if not doc:
         raise HTTPException(status_code=404, detail="Không tìm thấy tài liệu.")
 
-    file_path = Path(doc["file_path"])
+    file_path = resolve_cloud_document_path(doc["file_path"], doc["file_name"])
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Tệp tin không tồn tại trên máy chủ.")
 
@@ -345,8 +420,15 @@ CATEGORIES_META = {
 
 @router.get("/full-tree")
 def get_full_tree(user: dict = Depends(get_current_user)):
-    """Return categorized files from D:\TRON_BO_HO_SO_KHOA_XET_NGHIEM_TOAN_DIEN_2026"""
+    """Return categorized files from D:\TRON_BO_HO_SO_KHOA_XET_NGHIEM_TOAN_DIEN_2026 or Cloud manifest fallback."""
     if not FULL_ROOT.exists():
+        manifest_path = Path(__file__).resolve().parent.parent / "full_tree_manifest.json"
+        if manifest_path.exists():
+            try:
+                with open(manifest_path, "r", encoding="utf-8") as mf:
+                    return json.load(mf)
+            except Exception:
+                pass
         return {"success": False, "categories": [], "total_files": 0}
 
     tree = {}
@@ -411,13 +493,7 @@ def get_full_tree(user: dict = Depends(get_current_user)):
 
 @router.get("/download-file")
 def download_full_file(rel_path: str = Query(...), user: dict = Depends(get_current_user)):
-    """Safely download any file from D:\TRON_BO_HO_SO_KHOA_XET_NGHIEM_TOAN_DIEN_2026"""
-    safe_path = (FULL_ROOT / rel_path).resolve()
-    if not str(safe_path).startswith(str(FULL_ROOT)):
-        raise HTTPException(status_code=400, detail="Đường dẫn không hợp lệ")
-    if not safe_path.exists() or not safe_path.is_file():
-        raise HTTPException(status_code=404, detail="Không tìm thấy tệp tin")
-
+    """Safely download any file from D:\TRON_BO_HO_SO_KHOA_XET_NGHIEM_TOAN_DIEN_2026 or Cloud bundled archive."""
     media_types = {
         ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -427,26 +503,60 @@ def download_full_file(rel_path: str = Query(...), user: dict = Depends(get_curr
         ".jpg": "image/jpeg",
         ".jpeg": "image/jpeg"
     }
-    m_type = media_types.get(safe_path.suffix.lower(), "application/octet-stream")
+    file_name = Path(rel_path).name
+    m_type = media_types.get(Path(file_name).suffix.lower(), "application/octet-stream")
+
+    if FULL_ROOT.exists():
+        safe_path = (FULL_ROOT / rel_path).resolve()
+        if str(safe_path).startswith(str(FULL_ROOT)) and safe_path.exists() and safe_path.is_file():
+            return FileResponse(path=str(safe_path), filename=file_name, media_type=m_type)
+
+    # Cloud archive extraction (all 603 files from D: drive)
+    bin_bytes = extract_from_cloud_bins(rel_path)
+    if bin_bytes is not None:
+        encoded_name = quote(file_name)
+        return Response(
+            content=bin_bytes,
+            media_type=m_type,
+            headers={"Content-Disposition": f"attachment; filename*=UTF-8''{encoded_name}"}
+        )
+
+    target_path = resolve_cloud_document_path("", file_name)
+    if not target_path.exists() or not target_path.is_file():
+        raise HTTPException(status_code=404, detail="Không tìm thấy tệp tin")
 
     return FileResponse(
-        path=str(safe_path),
-        filename=safe_path.name,
+        path=str(target_path),
+        filename=file_name,
         media_type=m_type
     )
 
 @router.get("/preview-file")
 def preview_full_file(rel_path: str = Query(...), user: dict = Depends(get_current_user)):
-    """Preview PDF or text files inline from D:\TRON_BO_HO_SO_KHOA_XET_NGHIEM_TOAN_DIEN_2026"""
-    safe_path = (FULL_ROOT / rel_path).resolve()
-    if not str(safe_path).startswith(str(FULL_ROOT)):
-        raise HTTPException(status_code=400, detail="Đường dẫn không hợp lệ")
-    if not safe_path.exists() or not safe_path.is_file():
+    """Preview PDF or text files inline from D:\TRON_BO_HO_SO_KHOA_XET_NGHIEM_TOAN_DIEN_2026 or Cloud bundled archive."""
+    file_name = Path(rel_path).name
+    ext = Path(file_name).suffix.lower()
+    media_type = "application/pdf" if ext == ".pdf" else "text/plain; charset=utf-8"
+
+    if FULL_ROOT.exists():
+        safe_path = (FULL_ROOT / rel_path).resolve()
+        if str(safe_path).startswith(str(FULL_ROOT)) and safe_path.exists() and safe_path.is_file():
+            return FileResponse(path=str(safe_path), media_type=media_type)
+
+    bin_bytes = extract_from_cloud_bins(rel_path)
+    if bin_bytes is not None:
+        encoded_name = quote(file_name)
+        return Response(
+            content=bin_bytes,
+            media_type=media_type,
+            headers={"Content-Disposition": f"inline; filename*=UTF-8''{encoded_name}"}
+        )
+
+    target_path = resolve_cloud_document_path("", file_name)
+    if not target_path.exists() or not target_path.is_file():
         raise HTTPException(status_code=404, detail="Không tìm thấy tệp tin")
 
-    ext = safe_path.suffix.lower()
-    media_type = "application/pdf" if ext == ".pdf" else "text/plain; charset=utf-8"
     return FileResponse(
-        path=str(safe_path),
+        path=str(target_path),
         media_type=media_type
     )

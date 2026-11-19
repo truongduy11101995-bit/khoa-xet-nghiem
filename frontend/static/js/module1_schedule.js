@@ -98,17 +98,25 @@ function renderWeeklyScheduleGrid(data) {
             <th class="p-3 border border-sky-700 w-16">CA</th>
   `;
 
+  const approvedLeaves = data.approved_leaves || [];
+
   weekDates.forEach((dStr, idx) => {
     const parts = dStr.split('-');
     const shortDate = `${parts[2]}/${parts[1]}`;
     // Check if this date is today
     const isToday = dStr === formatDateToISO(new Date());
     const todayBadge = isToday ? '<span class="ml-1 px-1.5 py-0.5 bg-amber-400 text-amber-950 rounded text-[10px] font-extrabold uppercase">Hôm nay</span>' : '';
+    const dayLeaves = approvedLeaves.filter(l => l.leave_date === dStr);
+    const leaveNames = Array.from(new Set(dayLeaves.map(l => l.full_name.replace('CN. ', ''))));
+    const leaveHeaderHtml = leaveNames.length > 0
+      ? `<div class="mt-1 px-1.5 py-0.5 rounded bg-rose-500/90 text-white text-[10px] font-bold truncate" title="Nhân sự nghỉ phép: ${leaveNames.join(', ')}">🏖️ Nghỉ: ${leaveNames.join(', ')}</div>`
+      : '';
 
     html += `
       <th class="p-2.5 border border-sky-700 min-w-[140px] ${isToday ? 'bg-sky-900 ring-2 ring-amber-400' : ''}">
         <div class="text-xs uppercase font-extrabold">${dayLabels[idx]} ${todayBadge}</div>
         <div class="text-[11px] font-normal text-sky-200">${shortDate}</div>
+        ${leaveHeaderHtml}
       </th>
     `;
   });
@@ -174,17 +182,33 @@ function renderWeeklyScheduleGrid(data) {
         `;
 
         if (isAdmin) {
+          // Check if assigned user is on approved leave on this date & shift
+          const isAssignedOnLeave = assignment && approvedLeaves.some(l =>
+            l.user_id === assignment.user_id &&
+            l.leave_date === dStr &&
+            (l.shift === 'all' || l.shift === shift || shift === 'truc')
+          );
+
           // Admin can change selection directly
           html += `
             <select onchange="handleScheduleChange('${dStr}', '${shift}', ${pos.id}, this.value)"
-                    class="w-full text-xs font-semibold py-1 px-1.5 rounded border border-slate-300 focus:ring-1 focus:ring-sky-500 bg-white cursor-pointer ${isMyCell ? 'font-bold text-sky-800 bg-sky-50 border-sky-400' : 'text-slate-700'}">
+                    class="w-full text-xs font-semibold py-1 px-1.5 rounded border ${isAssignedOnLeave ? 'border-red-500 bg-red-50 text-red-900' : 'border-slate-300 bg-white'} focus:ring-1 focus:ring-sky-500 cursor-pointer ${isMyCell ? 'font-bold text-sky-800 bg-sky-50 border-sky-400' : 'text-slate-700'}">
               <option value="0">-- Trống --</option>
           `;
           scheduleStaffList.forEach(u => {
             const selected = (assignment && assignment.user_id === u.id) ? 'selected' : '';
-            html += `<option value="${u.id}" ${selected}>${u.full_name}</option>`;
+            const userOnLeave = approvedLeaves.some(l =>
+              l.user_id === u.id &&
+              l.leave_date === dStr &&
+              (l.shift === 'all' || l.shift === shift || shift === 'truc')
+            );
+            const leaveSuffix = userOnLeave ? ' ⚠️ (Đang nghỉ)' : '';
+            html += `<option value="${u.id}" ${selected}>${u.full_name}${leaveSuffix}</option>`;
           });
           html += `</select>`;
+          if (isAssignedOnLeave) {
+            html += `<div class="mt-0.5 text-[10px] font-bold text-red-600 leading-tight">⚠️ Trùng lịch nghỉ!</div>`;
+          }
         } else {
           // Regular view
           if (assignment) {

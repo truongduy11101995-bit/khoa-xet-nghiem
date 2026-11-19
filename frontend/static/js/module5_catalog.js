@@ -88,12 +88,12 @@ function switchCatalogView(mode) {
 
 // Render Top Statistics
 function renderCatalogStats() {
-    const totalDocsEl = document.getElementById('stat-total-docs');
+    const totalDocsEl = document.getElementById('catalog-stat-total-docs');
     const totalBindersEl = document.getElementById('stat-total-binders');
     const totalGroupsEl = document.getElementById('stat-total-groups');
 
     if (totalDocsEl) totalDocsEl.textContent = CATALOG_DOCUMENTS.length;
-    if (totalBindersEl) totalBindersEl.textContent = "10 Cuốn (11 Tập)";
+    if (totalBindersEl) totalBindersEl.textContent = "10 Cuốn";
     if (totalGroupsEl) totalGroupsEl.textContent = "07 Nhóm Chuẩn";
 }
 

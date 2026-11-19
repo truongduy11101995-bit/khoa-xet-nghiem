@@ -172,6 +172,12 @@ def get_environment_logs(
     humidities = []
     fridge_temps = []
     freezer_temps = []
+    fridge_sample_temps = []
+    incubator_temps = []
+
+    today_str = now.strftime("%Y-%m-%d")
+    today_sang_logged = False
+    today_chieu_logged = False
 
     for r in rows:
         # Normalize boolean is_safe
@@ -181,6 +187,12 @@ def get_environment_logs(
         else:
             warning_count += 1
 
+        if r.get("log_date") == today_str:
+            if r.get("shift") == "sang":
+                today_sang_logged = True
+            elif r.get("shift") == "chieu":
+                today_chieu_logged = True
+
         if r.get("room_temp") is not None:
             room_temps.append(float(r["room_temp"]))
         if r.get("room_humidity") is not None:
@@ -189,6 +201,10 @@ def get_environment_logs(
             fridge_temps.append(float(r["fridge_temp"]))
         if r.get("freezer_temp") is not None:
             freezer_temps.append(float(r["freezer_temp"]))
+        if r.get("fridge_sample_temp") is not None:
+            fridge_sample_temps.append(float(r["fridge_sample_temp"]))
+        if r.get("incubator_temp") is not None:
+            incubator_temps.append(float(r["incubator_temp"]))
 
     # Latest record for KPI cards
     latest = rows[-1] if rows else None
@@ -199,6 +215,9 @@ def get_environment_logs(
         "total_logs": total_logs,
         "safe_count": safe_count,
         "warning_count": warning_count,
+        "today_str": today_str,
+        "today_sang_logged": today_sang_logged,
+        "today_chieu_logged": today_chieu_logged,
         "latest": latest,
         "summary": {
             "room_temp": {
@@ -220,6 +239,16 @@ def get_environment_logs(
                 "avg": round(sum(freezer_temps)/len(freezer_temps), 1) if freezer_temps else None,
                 "min": min(freezer_temps) if freezer_temps else None,
                 "max": max(freezer_temps) if freezer_temps else None
+            },
+            "fridge_sample_temp": {
+                "avg": round(sum(fridge_sample_temps)/len(fridge_sample_temps), 1) if fridge_sample_temps else None,
+                "min": min(fridge_sample_temps) if fridge_sample_temps else None,
+                "max": max(fridge_sample_temps) if fridge_sample_temps else None
+            },
+            "incubator_temp": {
+                "avg": round(sum(incubator_temps)/len(incubator_temps), 1) if incubator_temps else None,
+                "min": min(incubator_temps) if incubator_temps else None,
+                "max": max(incubator_temps) if incubator_temps else None
             }
         },
         "limits": LIMITS

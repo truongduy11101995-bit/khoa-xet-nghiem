@@ -58,8 +58,25 @@ if FRONTEND_DIR.exists():
 def on_startup():
     init_directories()
     init_db()
+    # Keep-alive thread for Cloud 24/7 (prevents Render free tier sleep)
+    import threading
+    import time
+    import urllib.request
 
-@app.get("/", response_class=HTMLResponse)
+    def _keep_alive_worker():
+        url = os.getenv("RENDER_EXTERNAL_URL", "https://khoa-xet-nghiem.onrender.com").rstrip("/") + "/api/health"
+        while True:
+            time.sleep(600)  # Ping every 10 minutes
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "KhoaXetNghiem-KeepAlive/1.0"})
+                urllib.request.urlopen(req, timeout=10).read()
+            except Exception:
+                pass
+
+    t = threading.Thread(target=_keep_alive_worker, daemon=True)
+    t.start()
+
+@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def index_page(request: Request):
     """Serve Dashboard or redirect to login if no token."""
     user = get_current_user_optional(request)
@@ -71,7 +88,7 @@ def index_page(request: Request):
         return FileResponse(str(index_html))
     return HTMLResponse("<h1>Khoa Xét nghiệm - Bệnh viện Thiên Ân Viễn Đông</h1>")
 
-@app.get("/login", response_class=HTMLResponse)
+@app.api_route("/login", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def login_page(request: Request):
     """Serve Login Page or redirect to dashboard if already logged in."""
     user = get_current_user_optional(request)
@@ -83,7 +100,8 @@ def login_page(request: Request):
         return FileResponse(str(login_html))
     return HTMLResponse("<h1>Trang Đăng Nhập</h1>")
 
-@app.get("/api/health")
+@app.api_route("/api/health", methods=["GET", "HEAD"])
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health_check():
     return {
         "status": "healthy",

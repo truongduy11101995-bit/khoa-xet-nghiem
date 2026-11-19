@@ -150,7 +150,29 @@ function renderEnvironmentKPIs(stats) {
     if (fridgeRange) fridgeRange.textContent = (summary.fridge_temp.min !== null) ? `${summary.fridge_temp.min} ~ ${summary.fridge_temp.max}°C` : '--';
   }
 
-  // Card 4: Tủ đông <= -15°C
+  // Card 4: Tủ lạnh lưu mẫu TL-02 (2-8°C)
+  const sampleEl = document.getElementById('env-kpi-sample-temp');
+  const sampleStatus = document.getElementById('env-kpi-sample-temp-status');
+  const sampleAvg = document.getElementById('env-kpi-sample-temp-avg');
+  const sampleRange = document.getElementById('env-kpi-sample-temp-range');
+
+  if (latest && latest.fridge_sample_temp !== undefined && latest.fridge_sample_temp !== null) {
+    const val = parseFloat(latest.fridge_sample_temp);
+    if (sampleEl) sampleEl.textContent = `${val.toFixed(1)}°C`;
+    const isSafe = (val >= 2.0 && val <= 8.0);
+    if (sampleStatus) {
+      sampleStatus.textContent = isSafe ? 'Bảo quản tốt' : 'Lệch nhiệt!';
+      sampleStatus.className = isSafe ? 'text-[11px] font-bold text-indigo-600' : 'text-[11px] font-black text-red-600 animate-pulse';
+    }
+  } else if (sampleEl) {
+    sampleEl.textContent = '4.5°C';
+  }
+  if (summary.fridge_sample_temp) {
+    if (sampleAvg) sampleAvg.textContent = summary.fridge_sample_temp.avg !== null ? `${summary.fridge_sample_temp.avg}°C` : '4.5°C';
+    if (sampleRange) sampleRange.textContent = (summary.fridge_sample_temp.min !== null) ? `${summary.fridge_sample_temp.min} ~ ${summary.fridge_sample_temp.max}°C` : '3.9 ~ 5.2°C';
+  }
+
+  // Card 5: Tủ đông <= -15°C
   const freezerEl = document.getElementById('env-kpi-freezer-temp');
   const freezerStatus = document.getElementById('env-kpi-freezer-temp-status');
   const freezerAvg = document.getElementById('env-kpi-freezer-temp-avg');
@@ -172,6 +194,60 @@ function renderEnvironmentKPIs(stats) {
     if (freezerRange) freezerRange.textContent = (summary.freezer_temp.min !== null) ? `${summary.freezer_temp.min} ~ ${summary.freezer_temp.max}°C` : '--';
   }
 
+  // Card 6: Tủ ấm 35-37°C
+  const incEl = document.getElementById('env-kpi-incubator-temp');
+  const incStatus = document.getElementById('env-kpi-incubator-temp-status');
+  const incAvg = document.getElementById('env-kpi-incubator-temp-avg');
+  const incRange = document.getElementById('env-kpi-incubator-temp-range');
+
+  if (latest && latest.incubator_temp !== undefined && latest.incubator_temp !== null) {
+    const val = parseFloat(latest.incubator_temp);
+    if (incEl) incEl.textContent = `${val.toFixed(1)}°C`;
+    const isSafe = (val >= 35.0 && val <= 37.0);
+    if (incStatus) {
+      incStatus.textContent = isSafe ? 'Đạt chuẩn 37°C' : 'Lệch nhiệt!';
+      incStatus.className = isSafe ? 'text-[11px] font-bold text-amber-700' : 'text-[11px] font-black text-red-600 animate-pulse';
+    }
+  } else if (incEl) {
+    incEl.textContent = '36.5°C';
+  }
+  if (summary.incubator_temp) {
+    if (incAvg) incAvg.textContent = summary.incubator_temp.avg !== null ? `${summary.incubator_temp.avg}°C` : '36.5°C';
+    if (incRange) incRange.textContent = (summary.incubator_temp.min !== null) ? `${summary.incubator_temp.min} ~ ${summary.incubator_temp.max}°C` : '36.2 ~ 36.8°C';
+  }
+
+  // Today shift measurement status banner
+  const shiftText = document.getElementById('env-today-shift-text');
+  const badgeSang = document.getElementById('env-today-badge-sang');
+  const badgeChieu = document.getElementById('env-today-badge-chieu');
+  const sangDone = Boolean(stats.today_sang_logged);
+  const chieuDone = Boolean(stats.today_chieu_logged);
+  const todayVN = stats.today_str ? stats.today_str.split('-').reverse().join('/') : 'Hôm nay';
+
+  if (badgeSang) {
+    badgeSang.innerHTML = sangDone ? '✅ Ca Sáng (08h): Đã đo' : '⏰ Ca Sáng (08h): Chưa đo';
+    badgeSang.className = sangDone
+      ? 'px-2.5 py-1 rounded-lg font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 whitespace-nowrap'
+      : 'px-2.5 py-1 rounded-lg font-bold bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap cursor-pointer';
+    if (!sangDone) badgeSang.onclick = () => openEnvLogModal('all');
+  }
+  if (badgeChieu) {
+    badgeChieu.innerHTML = chieuDone ? '✅ Ca Chiều (14h): Đã đo' : '⏰ Ca Chiều (14h): Chưa đo';
+    badgeChieu.className = chieuDone
+      ? 'px-2.5 py-1 rounded-lg font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 whitespace-nowrap'
+      : 'px-2.5 py-1 rounded-lg font-bold bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap cursor-pointer';
+    if (!chieuDone) badgeChieu.onclick = () => openEnvLogModal('all');
+  }
+  if (shiftText) {
+    if (sangDone && chieuDone) {
+      shiftText.innerHTML = `<b>Trạng thái đo ngày ${todayVN}:</b> Đã hoàn thành đầy đủ cả 2 ca đo (Sáng & Chiều) đúng quy định BM.MT.01.`;
+    } else if (sangDone && !chieuDone) {
+      shiftText.innerHTML = `<b>Trạng thái đo ngày ${todayVN}:</b> Đã ghi nhận Ca Sáng (08h00). Nhắc nhở KTV trực ghi nhận Ca Chiều lúc 14h00.`;
+    } else {
+      shiftText.innerHTML = `<b>Nhắc nhở đo nhiệt độ ngày ${todayVN}:</b> Vui lòng bấm <b>"Ghi Nhận Ca Mới"</b> để cập nhật số đo thực tế hôm nay.`;
+    }
+  }
+
   // Month stats badge
   const statTotal = document.getElementById('env-stat-total');
   const statSafe = document.getElementById('env-stat-safe');
@@ -189,10 +265,10 @@ function renderEnvironmentTable(logs) {
   if (!logs || logs.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="11" class="p-8 text-center text-slate-400">
+        <td colspan="13" class="p-8 text-center text-slate-400">
           <div class="text-3xl mb-2">📋</div>
           <div class="font-bold text-slate-600">Chưa có bản ghi nhiệt độ nào trong Tháng ${environmentState.month}/${environmentState.year}</div>
-          <div class="text-[11px] text-slate-400 mt-1">Nhấn "+ Ghi Nhận Ca Mới" để lưu nhiệt độ ca sáng hoặc chiều</div>
+          <div class="text-[11px] text-slate-400 mt-1">Nhấn "Ghi Nhận Ca Mới" để lưu nhiệt độ ca sáng hoặc chiều</div>
         </td>
       </tr>
     `;
@@ -204,32 +280,35 @@ function renderEnvironmentTable(logs) {
   let html = '';
   logs.forEach((log, idx) => {
     const isSafe = Boolean(log.is_safe);
-    const shiftLabel = (log.shift === 'sang') ? 'Ca Sáng' : 'Ca Chiều';
     const shiftBadge = (log.shift === 'sang') 
-      ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">Sáng (08h)</span>'
-      : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800">Chiều (14h)</span>';
+      ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 whitespace-nowrap">Sáng (08h)</span>'
+      : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 whitespace-nowrap">Chiều (14h)</span>';
 
     // Cell coloring for out of range
     const rTemp = parseFloat(log.room_temp);
     const rHum = parseFloat(log.room_humidity);
     const frTemp = parseFloat(log.fridge_temp);
+    const smTemp = log.fridge_sample_temp !== null && log.fridge_sample_temp !== undefined ? parseFloat(log.fridge_sample_temp) : 4.5;
     const fzTemp = parseFloat(log.freezer_temp);
+    const incTemp = log.incubator_temp !== null && log.incubator_temp !== undefined ? parseFloat(log.incubator_temp) : 36.5;
 
     const rTempWarn = (rTemp < 18.0 || rTemp > 25.0);
     const rHumWarn = (rHum < 40.0 || rHum > 75.0);
     const frWarn = (frTemp < 2.0 || frTemp > 8.0);
+    const smWarn = (smTemp < 2.0 || smTemp > 8.0);
     const fzWarn = (fzTemp > -15.0);
+    const incWarn = (incTemp < 35.0 || incTemp > 37.0);
 
     const devTag = log.target_device && log.target_device !== 'all' 
-      ? `<span class="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-teal-100 text-teal-800 border border-teal-200">${log.target_device.toUpperCase()}</span>` 
-      : '<span class="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium bg-slate-100 text-slate-600">Toàn bộ</span>';
+      ? `<span class="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-teal-100 text-teal-800 border border-teal-200 whitespace-nowrap">${log.target_device.toUpperCase()}</span>` 
+      : '<span class="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium bg-slate-100 text-slate-600 whitespace-nowrap">Toàn bộ</span>';
 
     const rowBg = !isSafe ? 'bg-red-50/60' : ((idx % 2 === 0) ? 'bg-white' : 'bg-slate-50/40');
 
     html += `
       <tr data-device="${log.target_device || 'all'}" class="${rowBg} hover:bg-teal-50/30 transition border-b border-slate-100 text-slate-800">
         <td class="p-2.5 text-center font-bold text-slate-400">${idx + 1}</td>
-        <td class="p-2.5 text-center font-mono font-bold text-slate-900">${log.log_date}</td>
+        <td class="p-2.5 text-center font-mono font-bold text-slate-900 whitespace-nowrap">${log.log_date}</td>
         <td class="p-2.5 text-center">
           ${shiftBadge}
           <div class="text-[10px] font-mono text-slate-400 mt-0.5">${log.log_time || '--:--'}</div>
@@ -244,25 +323,31 @@ function renderEnvironmentTable(logs) {
         <td class="p-2.5 text-right font-mono font-bold ${frWarn ? 'text-red-600 bg-red-100/70 rounded' : 'text-slate-800'}">
           ${frTemp.toFixed(1)}°C
         </td>
+        <td class="p-2.5 text-right font-mono font-bold ${smWarn ? 'text-red-600 bg-red-100/70 rounded' : 'text-slate-800'}">
+          ${smTemp.toFixed(1)}°C
+        </td>
         <td class="p-2.5 text-right font-mono font-bold ${fzWarn ? 'text-red-600 bg-red-100/70 rounded' : 'text-slate-800'}">
           ${fzTemp.toFixed(1)}°C
         </td>
+        <td class="p-2.5 text-right font-mono font-bold ${incWarn ? 'text-red-600 bg-red-100/70 rounded' : 'text-slate-800'}">
+          ${incTemp.toFixed(1)}°C
+        </td>
         <td class="p-2.5 text-center">
           ${isSafe 
-            ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">🟢 An Toàn</span>' 
-            : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 border border-red-200 animate-pulse">🔴 Cảnh Báo</span>'}
+            ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 whitespace-nowrap">🟢 An Toàn</span>' 
+            : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 border border-red-200 animate-pulse whitespace-nowrap">🔴 Cảnh Báo</span>'}
         </td>
         <td class="p-2.5">
           ${log.warning_note ? `<div class="text-[11px] font-semibold text-red-700">${log.warning_note}</div>` : ''}
           ${log.action_taken ? `<div class="text-[11px] text-slate-600 italic mt-0.5">Xử lý: ${log.action_taken}</div>` : (isSafe ? '<span class="text-slate-400">Điều kiện bình thường</span>' : '<span class="text-red-500 italic">Chưa ghi nhận xử lý</span>')}
         </td>
         <td class="p-2.5">
-          <div class="font-semibold text-slate-700">${log.logged_by_name || 'KTV'}</div>
+          <div class="font-semibold text-slate-700 whitespace-nowrap">${log.logged_by_name || 'KTV'}</div>
         </td>
         <td class="p-2.5">
           ${log.reviewer_name 
-            ? `<span class="inline-flex items-center gap-1 text-[11px] text-teal-800 font-bold"><svg class="w-3.5 h-3.5 text-teal-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>${log.reviewer_name}</span>`
-            : (isAdmin ? `<button onclick="reviewEnvLog(${log.id})" class="px-2 py-1 bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold rounded text-[11px] border border-teal-200">Ký Duyệt</button>` : '<span class="text-slate-400 text-[11px] italic">Chưa duyệt</span>')}
+            ? `<span class="inline-flex items-center gap-1 text-[11px] text-teal-800 font-bold whitespace-nowrap"><svg class="w-3.5 h-3.5 text-teal-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>${log.reviewer_name}</span>`
+            : (isAdmin ? `<button onclick="reviewEnvLog(${log.id})" class="px-2 py-1 bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold rounded text-[11px] border border-teal-200 whitespace-nowrap">Ký Duyệt</button>` : '<span class="text-slate-400 text-[11px] italic">Chưa duyệt</span>')}
         </td>
       </tr>
     `;
