@@ -20,6 +20,7 @@ from backend.routers.stats import router as stats_router
 from backend.routers.ip_admin import router as ip_admin_router
 from backend.routers.inventory import router as inventory_router
 from backend.routers.environment import router as environment_router
+from backend.routers.qaqc import router as qaqc_router
 
 app = FastAPI(
     title="QUẢN LÝ XÉT NGHIỆM - BV Đa khoa Thiên Ân Viễn Đông",
@@ -49,6 +50,7 @@ app.include_router(stats_router)
 app.include_router(ip_admin_router)
 app.include_router(inventory_router)
 app.include_router(environment_router)
+app.include_router(qaqc_router)
 
 # 4. Mount Frontend static files
 if FRONTEND_DIR.exists():

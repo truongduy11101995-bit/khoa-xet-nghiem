@@ -1,0 +1,2939 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hệ thống Quản lý Hiệu chuẩn, Nội kiểm & Ngoại kiểm (QA/QC) – BVĐK Thiên Ân - Viễn Đông</title>
+  <!-- Google Fonts: Inter & Roboto -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    if (typeof tailwind !== 'undefined') {
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              medical: {
+                50: '#f0f9ff',
+                100: '#e0f2fe',
+                200: '#bae6fd',
+                300: '#7dd3fc',
+                500: '#0ea5e9',
+                600: '#0284c7',
+                700: '#0369a1',
+                800: '#075985',
+                900: '#0c4a6e'
+              },
+              navy: '#1B365D'
+            },
+            fontFamily: {
+              sans: ['Inter', 'Roboto', 'system-ui', '-apple-system', 'sans-serif']
+            }
+          }
+        }
+      };
+    }
+  </script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <!-- SheetJS CDN -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', 'Roboto', system-ui, -apple-system, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Print A4 Styling */
+    .print-doc {
+      font-family: 'Times New Roman', Times, serif !important;
+      color: #000000 !important;
+      background: #ffffff !important;
+    }
+    .print-doc table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .print-doc th,
+    .print-doc td {
+      border: 1px solid #000000;
+      padding: 5px 7px;
+      font-size: 12px;
+      vertical-align: middle;
+    }
+    .print-doc .no-border th,
+    .print-doc .no-border td {
+      border: none !important;
+    }
+
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 15mm 12mm 15mm 20mm;
+      }
+      body * {
+        visibility: hidden !important;
+      }
+      #printAreaModal,
+      #printAreaModal * {
+        visibility: visible !important;
+      }
+      #printAreaModal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+      }
+      #printModalBackdrop {
+        background: transparent !important;
+        position: static !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .page-break {
+        page-break-before: always;
+      }
+      thead {
+        display: table-header-group;
+      }
+      tr {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOP HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 py-3">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <!-- Brand & Title -->
+        <div id="brandTitleRow" class="flex items-start sm:items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-medical-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                HỆ THỐNG QUẢN LÝ HIỆU CHUẨN, NỘI KIỂM TÍCH LŨY &amp; NGOẠI KIỂM (QA/QC)
+              </h1>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-medical-100 text-medical-800 border border-medical-200">
+                QĐ 2429/QĐ-BYT
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+              <span class="font-semibold text-medical-700">Khoa Xét nghiệm – Bệnh viện Đa khoa Thiên Ân - Viễn Đông</span>
+              <span class="mx-1.5 text-slate-300">|</span>
+              <span>Chuẩn hóa dữ liệu trước tái hoạt động <strong class="text-slate-700">12/12/2026</strong></span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Global Status & Actions -->
+        <div class="flex flex-wrap items-center gap-2">
+          <div id="countdownBadge" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span id="countdownText">Đang tính...</span>
+          </div>
+
+          <div id="saveStatusBadge" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span id="saveStatusDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span id="saveStatusText">Đang kết nối Cloud...</span>
+          </div>
+
+          <button id="lanSyncBtn" onclick="manualLanSync()" class="hidden inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-medical-50 text-medical-700 border border-medical-200 hover:bg-medical-100 transition" title="Đồng bộ dữ liệu từ máy chủ Khoa ngay">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Đồng bộ Cloud
+          </button>
+
+          <a id="openFullscreenBtn" href="/static/qaqc.html" target="_blank" class="hidden inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-300 hover:bg-slate-200 transition">
+            Mở tab riêng
+          </a>
+
+          <button onclick="exportBackupJSON()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-medical-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Sao lưu (.JSON)
+          </button>
+
+          <label class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-medical-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Nạp dữ liệu (.JSON)
+            <input type="file" id="importJsonInput" accept=".json,application/json" class="hidden" onchange="importBackupJSON(event)" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex overflow-x-auto gap-1.5 mt-3 pt-2 border-t border-slate-100" aria-label="Main Tabs">
+        <button onclick="switchTab('tab1')" id="btn-tab1" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2">
+          <span class="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold">1</span>
+          Dải tham chiếu &amp; Hiệu chuẩn (Calib)
+        </button>
+        <button onclick="switchTab('tab2')" id="btn-tab2" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2">
+          <span class="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold">2</span>
+          Nội kiểm tích lũy (IQC) &amp; Levey-Jennings
+        </button>
+        <button onclick="switchTab('tab3')" id="btn-tab3" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2">
+          <span class="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold">3</span>
+          Ngoại kiểm (EQA) &amp; Tài khoản
+        </button>
+        <button onclick="switchTab('tab4')" id="btn-tab4" class="tab-btn whitespace-nowrap px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2">
+          <span class="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold">4</span>
+          Dashboard sẵn sàng 12/12 &amp; Xuất hồ sơ
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CDN Warning Banner (only shown if Chart or XLSX missing) -->
+  <div id="cdnWarning" class="hidden max-w-[1440px] mx-auto w-full px-4 sm:px-6 mt-3 no-print">
+    <div class="bg-amber-50 border border-amber-300 text-amber-900 rounded-lg px-4 py-2.5 text-xs flex items-center justify-between">
+      <span id="cdnWarningText">Lưu ý: Không kết nối được CDN thư viện ngoài. Các chức năng tính toán và lưu trữ vẫn hoạt động bình thường.</span>
+      <button onclick="document.getElementById('cdnWarning').classList.add('hidden')" class="font-bold ml-3">Đóng</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 py-5 no-print">
+
+    <!-- ==================== TAB 1: CALIBRATION & LINEARITY ==================== -->
+    <section id="tab1" class="tab-section space-y-4">
+      <!-- Top Controls Card -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Thiết lập lại Dải tham chiếu, Số lô Hóa chất &amp; Hiệu chuẩn (Calibration / Linearity)</h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Quy tắc tự động: Khi <strong>Số lô hóa chất mới ≠ Số lô cũ</strong>, hệ thống gắn nhãn đỏ bắt buộc chạy lại Calib &amp; kiểm tra độ tuyến tính 5 điểm trước khi tái hoạt động.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="openParamModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-medical-600 text-white hover:bg-medical-700 transition shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Thêm thông số mới
+            </button>
+            <button onclick="printCalibReport()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-navy text-white hover:opacity-90 transition shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              In Phiếu Xác Nhận Calib &amp; Dải Tham Chiếu (QĐ 2429)
+            </button>
+          </div>
+        </div>
+
+        <!-- Machine Filter Pills -->
+        <div id="tab1MachineFilters" class="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-slate-100"></div>
+
+        <!-- Search & Status Filter -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+          <div class="relative">
+            <input type="text" id="tab1Search" oninput="renderTab1()" placeholder="Tìm tên xét nghiệm, số lô cũ/mới, người thực hiện..." class="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-medical-500 focus:border-medical-500" />
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <select id="tab1AlertFilter" onchange="renderTab1()" class="px-3 py-2 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-medical-500">
+            <option value="ALL">Lọc cảnh báo: Tất cả thông số</option>
+            <option value="LOT_CHANGED">Chỉ hiện thông số đổi lô hóa chất (Bắt buộc Calib)</option>
+            <option value="PENDING_CALIB">Chưa đạt Calib / Chưa kiểm tra Linearity</option>
+            <option value="DONE">Đã hoàn tất Calib &amp; Linearity</option>
+          </select>
+          <div id="tab1SummaryStrip" class="flex items-center justify-end gap-3 text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200"></div>
+        </div>
+      </div>
+
+      <!-- Parameters Table -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 text-xs">
+            <thead class="bg-slate-50 text-slate-700 font-semibold">
+              <tr>
+                <th class="px-3 py-3 text-left whitespace-nowrap">STT / Máy XN</th>
+                <th class="px-3 py-3 text-left whitespace-nowrap">Tên xét nghiệm</th>
+                <th class="px-3 py-3 text-center whitespace-nowrap">Đơn vị</th>
+                <th class="px-3 py-3 text-left whitespace-nowrap">Dải tham chiếu cũ</th>
+                <th class="px-3 py-3 text-left whitespace-nowrap bg-medical-50/60 text-medical-900">Dải tham chiếu mới (2026)</th>
+                <th class="px-3 py-3 text-left whitespace-nowrap">Số lô cũ (2 năm trước)</th>
+                <th class="px-3 py-3 text-left whitespace-nowrap">Số lô mới &amp; EXP</th>
+                <th class="px-3 py-3 text-left whitespace-nowrap min-w-[230px]">Cảnh báo tự động</th>
+                <th class="px-3 py-3 text-center whitespace-nowrap">Trạng thái Calib</th>
+                <th class="px-3 py-3 text-center whitespace-nowrap">Factor / Slope</th>
+                <th class="px-3 py-3 text-center whitespace-nowrap">Độ tuyến tính</th>
+                <th class="px-3 py-3 text-center whitespace-nowrap">Ngày &amp; Người thực hiện</th>
+                <th class="px-3 py-3 text-center whitespace-nowrap">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="tab1TableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: IQC & LEVEY-JENNINGS ==================== -->
+    <section id="tab2" class="tab-section hidden space-y-4">
+      <!-- Selection Bar -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-3">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Nội kiểm tích lũy (IQC) &amp; Biểu đồ Levey-Jennings (01/12/2026 – 11/12/2026)</h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Tích lũy tối thiểu 5–10 ngày chạy QC liên tục cho 2 hoặc 3 mức để thiết lập Mean/SD thực tế áp dụng từ 12/12/2026. Bộ lọc Westgard kiểm tra tự động theo thời gian thực.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="lockIQCBaseline()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Chốt bộ Mean/SD thực tế áp dụng từ 12/12/2026
+            </button>
+            <button onclick="printLeveyJennings()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-navy text-white hover:opacity-90 transition shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Xuất biểu đồ Levey-Jennings (PDF / In A4)
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-slate-100">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">1. Chọn Máy xét nghiệm</label>
+            <select id="iqcMachineSelect" onchange="onIqcMachineChange()" class="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-300 bg-white focus:ring-2 focus:ring-medical-500"></select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">2. Chọn Thông số xét nghiệm</label>
+            <select id="iqcParamSelect" onchange="onIqcParamChange()" class="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-300 bg-white focus:ring-2 focus:ring-medical-500"></select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">3. Chọn Mức QC (2 hoặc 3 mức)</label>
+            <select id="iqcLevelSelect" onchange="renderTab2()" class="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-300 bg-white focus:ring-2 focus:ring-medical-500">
+              <option value="L1">Level 1 (Mức Bình thường / Thấp)</option>
+              <option value="L2">Level 2 (Mức Bệnh lý / Cao)</option>
+              <option value="L3">Level 3 (Mức Rất cao / Mở rộng)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">4. Hệ quy chiếu vẽ biểu đồ &amp; Westgard</label>
+            <select id="iqcBasisSelect" onchange="renderTab2()" class="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-300 bg-white focus:ring-2 focus:ring-medical-500">
+              <option value="TARGET">Theo Mean/SD Nhà sản xuất (Target)</option>
+              <option value="ACTUAL">Theo Mean/SD Thực tế tích lũy (N≥2)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics & Target Comparison Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Left 4 cols: Target Settings & Real-time Stats -->
+        <div class="lg:col-span-4 space-y-4">
+          <!-- Manufacturer Target Config -->
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div class="flex items-center justify-between mb-2.5">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Thông số Nhà sản xuất (Target) &amp; Lô QC</h3>
+              <span id="iqcLockBadge" class="text-[11px] px-2 py-0.5 rounded-full font-semibold"></span>
+            </div>
+            <div class="grid grid-cols-2 gap-2.5 text-xs">
+              <div>
+                <label class="block text-[11px] text-slate-500 mb-0.5">Số lô QC</label>
+                <input type="text" id="iqcLotInput" onchange="saveIqcTarget()" class="w-full px-2.5 py-1.5 rounded border border-slate-300 text-xs" placeholder="VD: QC-2026-L1" />
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-500 mb-0.5">Hạn dùng QC</label>
+                <input type="date" id="iqcExpInput" onchange="saveIqcTarget()" class="w-full px-2.5 py-1.5 rounded border border-slate-300 text-xs" />
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-500 mb-0.5">Target Mean (NSX)</label>
+                <input type="number" step="any" id="iqcTargetMeanInput" onchange="saveIqcTarget()" class="w-full px-2.5 py-1.5 rounded border border-slate-300 text-xs font-semibold text-medical-800" />
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-500 mb-0.5">Target SD (NSX)</label>
+                <input type="number" step="any" id="iqcTargetSdInput" onchange="saveIqcTarget()" class="w-full px-2.5 py-1.5 rounded border border-slate-300 text-xs font-semibold text-medical-800" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Real-time Calculation Summary -->
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Thống kê thực tế (Thời gian thực)</h3>
+              <span id="iqcSampleCountBadge" class="text-[11px] px-2 py-0.5 rounded-full font-semibold"></span>
+            </div>
+            <div class="grid grid-cols-2 gap-2.5" id="iqcStatsGrid"></div>
+
+            <!-- SD Thresholds Table -->
+            <div class="mt-3 pt-3 border-t border-slate-100">
+              <div class="text-[11px] font-semibold text-slate-600 mb-1.5">Các ngưỡng giới hạn kiểm soát (<span id="thresholdBasisLabel">Target</span>):</div>
+              <div class="grid grid-cols-3 gap-1.5 text-[11px]" id="iqcThresholdsGrid"></div>
+            </div>
+          </div>
+
+          <!-- Westgard Status & Troubleshooting -->
+          <div id="westgardAlertBox" class="rounded-xl border p-4 shadow-sm"></div>
+        </div>
+
+        <!-- Right 8 cols: Chart.js Levey-Jennings + Daily Run Table -->
+        <div class="lg:col-span-8 space-y-4">
+          <!-- Levey-Jennings Chart -->
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900" id="ljChartTitle">Biểu đồ Levey-Jennings</h3>
+                <p class="text-[11px] text-slate-500" id="ljChartSubtitle"></p>
+              </div>
+              <div class="flex flex-wrap items-center gap-3 text-[11px] font-medium">
+                <span class="inline-flex items-center gap-1"><span class="w-3 h-0.5 bg-green-600 inline-block"></span> Mean</span>
+                <span class="inline-flex items-center gap-1"><span class="w-3 h-0.5 border-t-2 border-dashed border-blue-600 inline-block"></span> ±1SD</span>
+                <span class="inline-flex items-center gap-1"><span class="w-3 h-0.5 bg-amber-500 inline-block"></span> ±2SD</span>
+                <span class="inline-flex items-center gap-1"><span class="w-3 h-0.5 bg-red-600 inline-block"></span> ±3SD</span>
+              </div>
+            </div>
+            <div class="relative h-[320px] w-full">
+              <canvas id="leveyJenningsCanvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Add New Daily Point + Runs Table -->
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Bảng nhập dữ liệu chạy nội kiểm hàng ngày (01/12 – 11/12/2026)</h3>
+              <button onclick="openWestgardGuideModal()" class="text-xs font-semibold text-medical-700 hover:underline flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Tra cứu quy tắc Westgard &amp; Hướng dẫn khắc phục
+              </button>
+            </div>
+
+            <!-- Quick Add Form -->
+            <form onsubmit="addIqcPoint(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200 mb-3">
+              <div class="sm:col-span-3">
+                <label class="block text-[11px] font-medium text-slate-600 mb-0.5">Ngày chạy</label>
+                <input type="date" id="newIqcDate" required class="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-[11px] font-medium text-slate-600 mb-0.5">Kết quả đo</label>
+                <input type="number" step="any" id="newIqcValue" required placeholder="Nhập số..." class="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white font-semibold" />
+              </div>
+              <div class="sm:col-span-3">
+                <label class="block text-[11px] font-medium text-slate-600 mb-0.5">Người thực hiện</label>
+                <select id="newIqcOperator" class="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white"></select>
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-[11px] font-medium text-slate-600 mb-0.5">Ghi chú</label>
+                <input type="text" id="newIqcNote" placeholder="Ca chạy / xử lý..." class="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white" />
+              </div>
+              <div class="sm:col-span-2 flex items-end">
+                <button type="submit" class="w-full px-3 py-1.5 text-xs font-semibold bg-medical-600 text-white rounded hover:bg-medical-700 transition">
+                  + Thêm điểm
+                </button>
+              </div>
+            </form>
+
+            <!-- Runs Table -->
+            <div class="overflow-x-auto max-h-[280px] overflow-y-auto border border-slate-200 rounded-lg">
+              <table class="min-w-full divide-y divide-slate-200 text-xs">
+                <thead class="bg-slate-50 sticky top-0 text-slate-700 font-semibold">
+                  <tr>
+                    <th class="px-3 py-2 text-center">Lần</th>
+                    <th class="px-3 py-2 text-left">Ngày chạy</th>
+                    <th class="px-3 py-2 text-right">Giá trị</th>
+                    <th class="px-3 py-2 text-right">Độ lệch (Z-score)</th>
+                    <th class="px-3 py-2 text-left">Đánh giá Westgard</th>
+                    <th class="px-3 py-2 text-left">KTV thực hiện</th>
+                    <th class="px-3 py-2 text-left">Ghi chú</th>
+                    <th class="px-3 py-2 text-center">Xóa</th>
+                  </tr>
+                </thead>
+                <tbody id="iqcRunsTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: EQA & SOFTWARE ACCOUNTS ==================== -->
+    <section id="tab3" class="tab-section hidden space-y-4">
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Theo dõi Ngoại kiểm (EQA) &amp; Tài khoản Phần mềm Nhập kết quả</h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Quản lý các chương trình ngoại kiểm (Trung tâm Kiểm chuẩn Chất lượng Xét nghiệm Y học – ĐHYD TP.HCM / Bộ Y tế) cho 6 nhóm xét nghiệm tại khoa.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="runEqaQuickCheck()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-amber-500 text-white hover:bg-amber-600 transition shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              Kiểm tra nhanh trạng thái &amp; Nhắc việc
+            </button>
+            <button onclick="openEqaModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-medical-600 text-white hover:bg-medical-700 transition shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Thêm chương trình EQA
+            </button>
+          </div>
+        </div>
+
+        <!-- Reminder Output Panel -->
+        <div id="eqaReminderPanel" class="hidden mt-3 p-3.5 rounded-lg border text-xs"></div>
+      </div>
+
+      <!-- EQA Table -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 text-xs">
+            <thead class="bg-slate-50 text-slate-700 font-semibold">
+              <tr>
+                <th class="px-3 py-3 text-left">Nhóm / Máy XN</th>
+                <th class="px-3 py-3 text-left">Chương trình EQA &amp; Đơn vị tổ chức</th>
+                <th class="px-3 py-3 text-center">Mã Phòng XN</th>
+                <th class="px-3 py-3 text-left">Link phần mềm nhập kết quả</th>
+                <th class="px-3 py-3 text-left">Tên đăng nhập &amp; Ghi chú bảo mật</th>
+                <th class="px-3 py-3 text-center">Trạng thái tài khoản</th>
+                <th class="px-3 py-3 text-center">Lịch nhận mẫu</th>
+                <th class="px-3 py-3 text-center">Hạn chót &amp; Đếm ngược</th>
+                <th class="px-3 py-3 text-center">Tình trạng mẫu</th>
+                <th class="px-3 py-3 text-center">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="tab3TableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: DASHBOARD & EXPORT ==================== -->
+    <section id="tab4" class="tab-section hidden space-y-5">
+      <!-- Top Readiness Hero -->
+      <div class="bg-gradient-to-r from-medical-700 to-navy rounded-xl p-5 text-white shadow-md">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <div class="text-xs uppercase tracking-wider text-medical-200 font-semibold">Bệnh viện Đa khoa Thiên Ân - Viễn Đông • Khoa Xét nghiệm</div>
+            <h2 class="text-xl font-bold mt-1">Dashboard Tổng hợp Mức độ Sẵn sàng Tái hoạt động (Trước 12/12/2026)</h2>
+            <p class="text-xs text-medical-100 mt-1">
+              Theo dõi đồng bộ tiến độ Hiệu chuẩn (Calib &amp; Linearity), Nội kiểm tích lũy 5–10 ngày (IQC) và Ngoại kiểm (EQA) trên toàn bộ 06 thiết bị chính.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button onclick="exportExcelWorkbook()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold bg-emerald-500 text-white hover:bg-emerald-600 transition shadow">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Xuất Hồ sơ Excel (.xlsx)
+            </button>
+            <button onclick="printReadinessReport()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold bg-white text-navy hover:bg-slate-100 transition shadow">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              In Báo cáo Tổng hợp A4
+            </button>
+          </div>
+        </div>
+
+        <!-- Global KPIs -->
+        <div id="dashboardGlobalKpis" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5"></div>
+      </div>
+
+      <!-- Chart + Device Progress Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div class="lg:col-span-5 bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 mb-1">Biểu đồ So sánh Tiến độ Sẵn sàng 06 Thiết bị (%)</h3>
+          <p class="text-[11px] text-slate-500 mb-3">Tỷ lệ hoàn thành Calib &amp; Linearity, Nội kiểm tích lũy (N≥5 &amp; Chốt) và Ngoại kiểm EQA.</p>
+          <div class="h-[300px]">
+            <canvas id="readinessBarChart"></canvas>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 mb-3">Chi tiết Tiến độ từng Thiết bị</h3>
+          <div id="deviceReadinessGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </div>
+      </div>
+
+      <!-- Data Backup & Sign-off Card -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 mb-2">Đồng bộ dữ liệu &amp; Quản trị hệ thống</h3>
+          <p class="text-xs text-slate-600 mb-3">
+            Dữ liệu được lưu tự động trên trình duyệt (<code class="px-1 py-0.5 bg-slate-100 rounded text-[11px]">localStorage</code>). Để đồng bộ giữa các máy tính trong phòng xét nghiệm, hãy xuất tệp sao lưu <code class="px-1 py-0.5 bg-slate-100 rounded text-[11px]">.JSON</code> và nạp lại ở máy đích.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="exportBackupJSON()" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-medical-600 text-white hover:bg-medical-700 transition">
+              Xuất file sao lưu (.JSON)
+            </button>
+            <label class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-300 hover:bg-slate-200 transition cursor-pointer">
+              Nhập file dữ liệu (.JSON)
+              <input type="file" accept=".json,application/json" class="hidden" onchange="importBackupJSON(event)" />
+            </label>
+            <button onclick="resetToDefaultData()" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition ml-auto">
+              Khôi phục dữ liệu mẫu mặc định
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 mb-2">Thông tin Hành chính &amp; Ký duyệt Chuẩn QĐ 2429</h3>
+          <div class="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div>
+              <div class="text-slate-500">Đơn vị chủ quản:</div>
+              <div class="font-bold text-slate-800">BỆNH VIỆN ĐA KHOA THIÊN ÂN - VIỄN ĐÔNG</div>
+              <div class="text-slate-500 mt-2">Khoa / Phòng:</div>
+              <div class="font-bold text-medical-800">KHOA XÉT NGHIỆM</div>
+            </div>
+            <div>
+              <div class="text-slate-500">Người lập biểu / KTV Trưởng:</div>
+              <div class="font-bold text-slate-800">CN. Nguyễn Trường Duy</div>
+              <div class="text-slate-500 mt-2">Trưởng Khoa Xét nghiệm:</div>
+              <div class="font-bold text-slate-800">CN. Lê Đình Tú</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Modal 1: Add/Edit Calibration Parameter -->
+  <div id="paramModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-xl max-w-2xl w-full shadow-xl border border-slate-200 overflow-hidden">
+      <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <h3 id="paramModalTitle" class="text-sm font-bold text-slate-900">Cập nhật Thông số Hiệu chuẩn &amp; Dải tham chiếu</h3>
+        <button onclick="closeModal('paramModal')" class="text-slate-400 hover:text-slate-700 font-bold text-lg leading-none">&times;</button>
+      </div>
+      <form onsubmit="saveParamForm(event)" class="p-5 space-y-3 text-xs max-h-[80vh] overflow-y-auto">
+        <input type="hidden" id="editParamId" />
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Máy xét nghiệm</label>
+            <select id="pmMachine" required class="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white"></select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Tên xét nghiệm</label>
+            <input type="text" id="pmName" required class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Đơn vị</label>
+            <input type="text" id="pmUnit" required class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Dải tham chiếu cũ</label>
+            <input type="text" id="pmOldRef" class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-semibold text-medical-800 mb-1">Dải tham chiếu mới (cập nhật 2026)</label>
+            <input type="text" id="pmNewRef" required class="w-full px-2.5 py-2 rounded-lg border border-medical-300 bg-medical-50/30 font-medium" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Số lô hóa chất cũ (2 năm trước)</label>
+            <input type="text" id="pmOldLot" class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Số lô hóa chất mới</label>
+            <input type="text" id="pmNewLot" class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Hạn dùng (EXP)</label>
+            <input type="date" id="pmExp" class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Trạng thái Calib</label>
+            <select id="pmCalibStatus" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white">
+              <option value="Chưa chạy">Chưa chạy</option>
+              <option value="Đạt">Đạt</option>
+              <option value="Không đạt">Không đạt</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Hệ số Factor / Slope</label>
+            <input type="text" id="pmFactor" placeholder="VD: 1.02 / Slope 0.998" class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Trạng thái Độ tuyến tính</label>
+            <select id="pmLinearityStatus" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white">
+              <option value="Chưa kiểm tra">Chưa kiểm tra</option>
+              <option value="Đạt 5 điểm">Đạt 5 điểm</option>
+              <option value="Không đạt">Không đạt</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Ngày thực hiện</label>
+            <input type="date" id="pmDate" class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Người thực hiện</label>
+            <select id="pmOperator" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white"></select>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('paramModal')" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50">Hủy</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-medical-600 text-white font-semibold hover:bg-medical-700">Lưu thông số</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Add/Edit EQA -->
+  <div id="eqaModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-xl max-w-2xl w-full shadow-xl border border-slate-200 overflow-hidden">
+      <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <h3 id="eqaModalTitle" class="text-sm font-bold text-slate-900">Thông tin Chương trình Ngoại kiểm (EQA)</h3>
+        <button onclick="closeModal('eqaModal')" class="text-slate-400 hover:text-slate-700 font-bold text-lg leading-none">&times;</button>
+      </div>
+      <form onsubmit="saveEqaForm(event)" class="p-5 space-y-3 text-xs max-h-[80vh] overflow-y-auto">
+        <input type="hidden" id="editEqaId" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Nhóm xét nghiệm / Máy</label>
+            <input type="text" id="eqaGroup" required class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Mã phòng xét nghiệm</label>
+            <input type="text" id="eqaLabCode" required class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Tên chương trình EQA</label>
+            <input type="text" id="eqaProgram" required class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Đơn vị tổ chức</label>
+            <input type="text" id="eqaProvider" required class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Link phần mềm nhập kết quả</label>
+          <input type="url" id="eqaPortalUrl" required class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Tên đăng nhập</label>
+            <input type="text" id="eqaUsername" class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Trạng thái kích hoạt tài khoản</label>
+            <select id="eqaAccountStatus" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white">
+              <option value="Hoạt động">Hoạt động</option>
+              <option value="Cần reset mật khẩu">Cần reset mật khẩu</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Ghi chú bảo mật tài khoản (Không lưu mật khẩu thô)</label>
+          <input type="text" id="eqaSecurityNote" class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Lịch nhận mẫu dự kiến</label>
+            <input type="date" id="eqaReceiveDate" class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Hạn chót trả kết quả</label>
+            <input type="date" id="eqaDeadline" required class="w-full px-2.5 py-2 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Tình trạng mẫu</label>
+            <select id="eqaSampleStatus" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white">
+              <option value="Chưa nhận">Chưa nhận</option>
+              <option value="Đã nhận">Đã nhận</option>
+              <option value="Đã chạy">Đã chạy</option>
+              <option value="Đã gửi KQ">Đã gửi KQ</option>
+            </select>
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('eqaModal')" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50">Hủy</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-medical-600 text-white font-semibold hover:bg-medical-700">Lưu chương trình</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Westgard Guide Modal -->
+  <div id="westgardGuideModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-xl max-w-3xl w-full shadow-xl border border-slate-200 overflow-hidden">
+      <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <h3 class="text-sm font-bold text-slate-900">Quy tắc Westgard &amp; Hướng dẫn Xử lý Khắc phục Nội kiểm (IQC)</h3>
+        <button onclick="closeModal('westgardGuideModal')" class="text-slate-400 hover:text-slate-700 font-bold text-lg leading-none">&times;</button>
+      </div>
+      <div class="p-5 text-xs space-y-3 max-h-[75vh] overflow-y-auto">
+        <div class="p-3 rounded-lg bg-amber-50 border border-amber-200">
+          <div class="font-bold text-amber-900">1. Quy tắc 1<sub>2s</sub> (Cảnh báo – Màu vàng)</div>
+          <p class="text-amber-800 mt-1">1 điểm kiểm tra vượt quá giới hạn ±2SD (nhưng trong ±3SD). <strong>Hành động:</strong> Không loại bỏ ngay; rà soát chuỗi Westgard tiếp theo (2<sub>2s</sub>, R<sub>4s</sub>, 4<sub>1s</sub>, 10<sub>x</sub>). Kiểm tra bọt khí, tình trạng mẫu QC và ghi nhận theo dõi.</p>
+        </div>
+        <div class="p-3 rounded-lg bg-red-50 border border-red-200">
+          <div class="font-bold text-red-900">2. Quy tắc 1<sub>3s</sub> (Loại bỏ – Sai số ngẫu nhiên – Màu đỏ)</div>
+          <p class="text-red-800 mt-1">1 điểm kiểm tra vượt quá giới hạn ±3SD. <strong>Hành động:</strong> Dừng trả kết quả bệnh nhân. Kiểm tra pipet hút mẫu/hóa chất, bọt khí đường ống, ống mẫu QC mới hoàn nguyên/rã đông chưa đều. Pha lọ QC mới và chạy lại.</p>
+        </div>
+        <div class="p-3 rounded-lg bg-red-50 border border-red-200">
+          <div class="font-bold text-red-900">3. Quy tắc 2<sub>2s</sub> (Loại bỏ – Sai số hệ thống – Màu đỏ)</div>
+          <p class="text-red-800 mt-1">2 điểm liên tiếp (hoặc 2 mức trong cùng lần chạy) vượt quá ±2SD về cùng một phía. <strong>Hành động:</strong> Dừng trả kết quả. Kiểm tra độ ổn định hóa chất (hạn dùng, bảo quản nhiệt độ), bóng đèn quang học, điện cực, và tiến hành hiệu chuẩn (Calib) lại thông số.</p>
+        </div>
+        <div class="p-3 rounded-lg bg-red-50 border border-red-200">
+          <div class="font-bold text-red-900">4. Quy tắc R<sub>4s</sub> (Loại bỏ – Sai số ngẫu nhiên – Màu đỏ)</div>
+          <p class="text-red-800 mt-1">Khoảng cách giữa 2 điểm liên tiếp (hoặc giữa 2 mức QC cùng ngày) vượt quá 4SD (ví dụ: 1 điểm &gt; +2SD và 1 điểm &lt; -2SD). <strong>Hành động:</strong> Kiểm tra độ chụm (precision) của bộ kim hút, van rửa cuvette, nhiệt độ buồng đo, bọt khí.</p>
+        </div>
+        <div class="p-3 rounded-lg bg-red-50 border border-red-200">
+          <div class="font-bold text-red-900">5. Quy tắc 4<sub>1s</sub> &amp; 10<sub>x</sub> (Loại bỏ – Sai số hệ thống / Trôi đường chuẩn – Màu đỏ)</div>
+          <p class="text-red-800 mt-1"><strong>4<sub>1s</sub>:</strong> 4 điểm liên tiếp vượt ±1SD về cùng 1 phía. <strong>10<sub>x</sub>:</strong> 10 điểm liên tiếp nằm về cùng 1 phía của đường Mean. <strong>Hành động:</strong> Kiểm tra hiện tượng trôi hệ thống (drift), thay hóa chất lô mới, vệ sinh hệ thống, thực hiện Calib lại và đánh giá cập nhật Mean thực tế nếu cần.</p>
+        </div>
+      </div>
+      <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+        <button onclick="closeModal('westgardGuideModal')" class="px-4 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-semibold">Đã hiểu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: A4 Print Preview Modal -->
+  <div id="printModalBackdrop" class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-2 sm:p-6 overflow-y-auto">
+    <div id="printAreaModal" class="bg-white rounded-xl max-w-[960px] w-full shadow-2xl overflow-hidden my-auto">
+      <div class="px-5 py-3 bg-slate-100 border-b border-slate-200 flex items-center justify-between no-print">
+        <div class="text-xs font-bold text-slate-800">Xem trước Bản In A4 (Chuẩn Biểu mẫu Hành chính – QĐ 2429/QĐ-BYT)</div>
+        <div class="flex items-center gap-2">
+          <button onclick="window.print()" class="px-4 py-1.5 rounded-lg bg-medical-600 text-white text-xs font-semibold hover:bg-medical-700">
+            In / Lưu PDF (A4)
+          </button>
+          <button onclick="closeModal('printModalBackdrop')" class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+            Đóng
+          </button>
+        </div>
+      </div>
+      <div id="printContentBody" class="p-6 sm:p-8 max-h-[82vh] overflow-y-auto print-doc"></div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2 no-print"></div>
+
+  <script>
+    // =========================================================================
+    // 1. CONSTANTS & STANDARD DATA (BVĐK THIÊN ÂN - VIỄN ĐÔNG)
+    // =========================================================================
+    const STORAGE_KEY = 'qa_qc_thien_an_v2026_1';
+    const TARGET_DATE_STR = '2026-12-12';
+
+    const LAB_STAFF = [
+      'CN. Nguyễn Trường Duy',
+      'CN. Lê Đình Tú',
+      'CN. Lê Phát Đại',
+      'CN. Tống Mọng Tiền'
+    ];
+
+    const MACHINES = [
+      { id: 'ELEC500', name: 'Electalyte 500', group: 'Điện giải (Ion đồ)', shortName: 'Electalyte 500' },
+      { id: 'THROMBO', name: 'Thrombo Fast', group: 'Đông máu', shortName: 'Thrombo Fast' },
+      { id: 'MONARCH1000', name: 'Monarch 1000', group: 'Sinh hóa tự động', shortName: 'Monarch 1000' },
+      { id: 'AE1000', name: 'AE 1000', group: 'Miễn dịch', shortName: 'AE 1000' },
+      { id: 'CELLDIFF580', name: 'CELLDIFF-580', group: 'Huyết học', shortName: 'CELLDIFF-580' },
+      { id: 'URSA500', name: 'URSA-500', group: 'Nước tiểu', shortName: 'URSA-500' }
+    ];
+
+    function makeDefaultParameters() {
+      const list = [];
+      const add = (id, machineId, name, unit, oldRef, newRef, oldLot, newLot, exp, calibStatus, factor, linearityStatus, date, operator, tMean1, tSd1, tMean2, tSd2, tMean3, tSd3) => {
+        list.push({
+          id, machineId, name, unit, oldRef, newRef, oldLot, newLot, exp,
+          calibStatus, factor, linearityStatus, date, operator,
+          iqc: {
+            L1: { lot: `QC-${machineId}-L1`, exp: '2027-06-30', targetMean: tMean1, targetSd: tSd1, runs: [], locked: false, lockedAt: null, lockedBy: null, lockedMean: null, lockedSd: null, lockedCv: null },
+            L2: { lot: `QC-${machineId}-L2`, exp: '2027-06-30', targetMean: tMean2, targetSd: tSd2, runs: [], locked: false, lockedAt: null, lockedBy: null, lockedMean: null, lockedSd: null, lockedCv: null },
+            L3: { lot: `QC-${machineId}-L3`, exp: '2027-06-30', targetMean: tMean3 ?? '', targetSd: tSd3 ?? '', runs: [], locked: false, lockedAt: null, lockedBy: null, lockedMean: null, lockedSd: null, lockedCv: null }
+          }
+        });
+      };
+
+      // 1. Electalyte 500 (6 params)
+      add('EL_NA', 'ELEC500', 'Na+', 'mmol/L', '135 - 145', '136 - 145', 'ISE-2401', 'ISE-2611', '2027-08-31', 'Đạt', 'Slope 1.01', 'Đạt 5 điểm', '2026-11-20', 'CN. Lê Phát Đại', 140.0, 1.5, 155.0, 2.0, 120.0, 1.5);
+      add('EL_K', 'ELEC500', 'K+', 'mmol/L', '3.5 - 5.1', '3.5 - 5.1', 'ISE-2401', 'ISE-2611', '2027-08-31', 'Đạt', 'Slope 0.99', 'Đạt 5 điểm', '2026-11-20', 'CN. Lê Phát Đại', 4.10, 0.08, 6.20, 0.12, 2.60, 0.06);
+      add('EL_CL', 'ELEC500', 'Cl-', 'mmol/L', '98 - 107', '98 - 107', 'ISE-2401', 'ISE-2611', '2027-08-31', 'Đạt', 'Slope 1.00', 'Đạt 5 điểm', '2026-11-20', 'CN. Lê Phát Đại', 101.0, 1.5, 118.0, 2.0, 82.0, 1.5);
+      add('EL_ICA', 'ELEC500', 'iCa', 'mmol/L', '1.12 - 1.32', '1.15 - 1.33', 'ISE-2402', 'ISE-2611', '2027-08-31', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Lê Phát Đại', 1.22, 0.03, 1.65, 0.04, 0.85, 0.02);
+      add('EL_TCA', 'ELEC500', 'TCa', 'mmol/L', '2.15 - 2.55', '2.15 - 2.50', 'ISE-2402', 'ISE-2611', '2027-08-31', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Lê Phát Đại', 2.30, 0.05, 3.10, 0.07, 1.75, 0.04);
+      add('EL_PH', 'ELEC500', 'pH', 'pH', '7.35 - 7.45', '7.35 - 7.45', 'ISE-2401', 'ISE-2611', '2027-08-31', 'Đạt', 'Slope 1.00', 'Đạt 5 điểm', '2026-11-20', 'CN. Lê Phát Đại', 7.40, 0.02, 7.60, 0.02, 7.15, 0.02);
+
+      // 2. Thrombo Fast (6 params)
+      add('TH_PTS', 'THROMBO', 'PT (giây)', 'giây', '10.5 - 13.5', '10.8 - 13.4', 'TF-PT24A', 'TF-PT26B', '2027-09-30', 'Đạt', 'ISI 1.05', 'Đạt 5 điểm', '2026-11-21', 'CN. Nguyễn Trường Duy', 12.0, 0.35, 28.5, 0.90);
+      add('TH_PTP', 'THROMBO', 'PT (%)', '%', '70 - 130', '70 - 125', 'TF-PT24A', 'TF-PT26B', '2027-09-30', 'Đạt', '1.00', 'Đạt 5 điểm', '2026-11-21', 'CN. Nguyễn Trường Duy', 96.0, 3.5, 32.0, 2.0);
+      add('TH_INR', 'THROMBO', 'PT (INR)', 'INR', '0.85 - 1.15', '0.85 - 1.15', 'TF-PT24A', 'TF-PT26B', '2027-09-30', 'Đạt', 'ISI 1.05', 'Đạt 5 điểm', '2026-11-21', 'CN. Nguyễn Trường Duy', 1.02, 0.03, 2.65, 0.10);
+      add('TH_APTT', 'THROMBO', 'APTT', 'giây', '25 - 37', '26 - 36', 'TF-AP24A', 'TF-AP26C', '2027-10-15', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Nguyễn Trường Duy', 30.5, 0.9, 64.0, 2.2);
+      add('TH_FIB', 'THROMBO', 'Fibrinogen', 'g/L', '2.0 - 4.0', '2.0 - 4.0', 'TF-FB24A', 'TF-FB26C', '2027-10-15', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Nguyễn Trường Duy', 2.85, 0.12, 1.15, 0.07);
+      add('TH_TT', 'THROMBO', 'TT', 'giây', '14 - 21', '14 - 21', 'TF-TT24A', 'TF-TT26C', '2027-10-15', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Tống Mọng Tiền', 16.5, 0.6, 35.0, 1.5);
+
+      // 3. Monarch 1000 (15 params)
+      add('MN_GLU', 'MONARCH1000', 'Glucose', 'mmol/L', '3.9 - 6.4', '3.9 - 6.1', 'MN-GL2401', 'MN-GL2610', '2027-11-30', 'Đạt', '1.004', 'Đạt 5 điểm', '2026-11-19', 'CN. Nguyễn Trường Duy', 5.20, 0.15, 14.80, 0.40);
+      add('MN_URE', 'MONARCH1000', 'Urea', 'mmol/L', '2.8 - 7.2', '2.8 - 7.2', 'MN-UR2401', 'MN-UR2610', '2027-11-30', 'Đạt', '0.996', 'Đạt 5 điểm', '2026-11-19', 'CN. Nguyễn Trường Duy', 6.10, 0.22, 18.50, 0.55);
+      add('MN_CRE', 'MONARCH1000', 'Creatinine', 'µmol/L', '53 - 115', '59 - 104 (Nam) / 45 - 84 (Nữ)', 'MN-CR2402', 'MN-CR2611', '2027-10-31', 'Đạt', '1.012', 'Đạt 5 điểm', '2026-11-19', 'CN. Lê Phát Đại', 88.0, 3.5, 420.0, 12.0);
+      add('MN_AST', 'MONARCH1000', 'AST (GOT)', 'U/L', '< 37', '< 35 (Nam) / < 31 (Nữ)', 'MN-AS2401', 'MN-AS2611', '2027-09-30', 'Đạt', '1.000', 'Đạt 5 điểm', '2026-11-20', 'CN. Lê Phát Đại', 32.0, 1.8, 165.0, 5.5);
+      add('MN_ALT', 'MONARCH1000', 'ALT (GPT)', 'U/L', '< 40', '< 45 (Nam) / < 34 (Nữ)', 'MN-AL2401', 'MN-AL2611', '2027-09-30', 'Đạt', '1.008', 'Đạt 5 điểm', '2026-11-20', 'CN. Lê Phát Đại', 29.0, 1.7, 148.0, 5.0);
+      add('MN_GGT', 'MONARCH1000', 'GGT', 'U/L', '< 55', '< 55 (Nam) / < 38 (Nữ)', 'MN-GG2401', 'MN-GG2610', '2027-09-30', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Tống Mọng Tiền', 38.0, 2.0, 180.0, 6.0);
+      add('MN_TBIL', 'MONARCH1000', 'Bilirubin TP', 'µmol/L', '< 17.1', '3.4 - 20.5', 'MN-BT2401', 'MN-BT2610', '2027-08-31', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Tống Mọng Tiền', 15.2, 0.8, 86.0, 3.2);
+      add('MN_DBIL', 'MONARCH1000', 'Bilirubin TT', 'µmol/L', '< 4.3', '< 5.1', 'MN-BD2401', 'MN-BD2610', '2027-08-31', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Tống Mọng Tiền', 5.8, 0.35, 38.0, 1.5);
+      add('MN_CHOL', 'MONARCH1000', 'Cholesterol', 'mmol/L', '< 5.2', '< 5.17', 'MN-CH2401', 'MN-CH2610', '2027-12-31', 'Đạt', '0.992', 'Đạt 5 điểm', '2026-11-21', 'CN. Nguyễn Trường Duy', 3.90, 0.14, 7.10, 0.25);
+      add('MN_TG', 'MONARCH1000', 'Triglyceride', 'mmol/L', '< 1.7', '< 1.70', 'MN-TG2401', 'MN-TG2610', '2027-12-31', 'Đạt', '1.005', 'Đạt 5 điểm', '2026-11-21', 'CN. Nguyễn Trường Duy', 1.25, 0.06, 3.40, 0.14);
+      add('MN_HDL', 'MONARCH1000', 'HDL-C', 'mmol/L', '> 1.03', '> 1.03 (Nam) / > 1.29 (Nữ)', 'MN-HD2401', 'MN-HD2611', '2027-11-30', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Lê Phát Đại', 1.15, 0.05, 1.95, 0.08);
+      add('MN_LDL', 'MONARCH1000', 'LDL-C', 'mmol/L', '< 3.4', '< 2.59 (Tối ưu)', 'MN-LD2401', 'MN-LD2611', '2027-11-30', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Lê Phát Đại', 2.20, 0.10, 4.50, 0.18);
+      add('MN_UA', 'MONARCH1000', 'Acid Uric', 'µmol/L', '208 - 428', '202 - 416 (Nam) / 142 - 339 (Nữ)', 'MN-UA2401', 'MN-UA2610', '2027-10-31', 'Đạt', '1.001', 'Đạt 5 điểm', '2026-11-21', 'CN. Tống Mọng Tiền', 290.0, 9.0, 560.0, 16.0);
+      add('MN_TP', 'MONARCH1000', 'Protein TP', 'g/L', '66 - 87', '64 - 83', 'MN-TP2401', 'MN-TP2610', '2027-10-31', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Tống Mọng Tiền', 64.0, 1.8, 45.0, 1.4);
+      add('MN_ALB', 'MONARCH1000', 'Albumin', 'g/L', '35 - 52', '35 - 50', 'MN-AB2401', 'MN-AB2610', '2027-10-31', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Tống Mọng Tiền', 41.0, 1.2, 26.0, 0.9);
+
+      // 4. AE 1000 (11 params)
+      add('AE_HBSAG', 'AE1000', 'HBsAg', 'S/CO', '< 1.0 (Âm tính)', '< 1.00 (Âm tính)', 'AE-HB24A', 'AE-HB26B', '2027-07-31', 'Đạt', 'Cutoff 1.00', 'Đạt 5 điểm', '2026-11-20', 'CN. Lê Đình Tú', 0.25, 0.04, 18.50, 0.95);
+      add('AE_AHBS', 'AE1000', 'Anti-HBs', 'mIU/mL', '< 10', '< 10.0 (Âm tính)', 'AE-AH24A', 'AE-AH26B', '2027-07-31', 'Đạt', '0.995', 'Đạt 5 điểm', '2026-11-20', 'CN. Lê Đình Tú', 3.5, 0.4, 145.0, 6.5);
+      add('AE_AHCV', 'AE1000', 'Anti-HCV', 'S/CO', '< 1.0 (Âm tính)', '< 1.00 (Âm tính)', 'AE-HC24A', 'AE-HC26B', '2027-07-31', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Nguyễn Trường Duy', 0.18, 0.03, 12.40, 0.65);
+      add('AE_HIV', 'AE1000', 'HIV Ag/Ab', 'S/CO', '< 1.0 (Âm tính)', '< 1.00 (Âm tính)', 'AE-HV24A', 'AE-HV26B', '2027-07-31', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Nguyễn Trường Duy', 0.22, 0.03, 15.20, 0.80);
+      add('AE_TSH', 'AE1000', 'TSH', 'µIU/mL', '0.27 - 4.20', '0.35 - 4.94', 'AE-TS24A', 'AE-TS26C', '2027-09-30', 'Đạt', '1.012', 'Đạt 5 điểm', '2026-11-21', 'CN. Lê Đình Tú', 1.45, 0.08, 18.20, 0.75);
+      add('AE_FT3', 'AE1000', 'FT3', 'pmol/L', '3.1 - 6.8', '2.63 - 5.70', 'AE-F324A', 'AE-F326C', '2027-09-30', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Lê Phát Đại', 4.20, 0.22, 13.50, 0.60);
+      add('AE_FT4', 'AE1000', 'FT4', 'pmol/L', '12.0 - 22.0', '9.01 - 19.05', 'AE-F424A', 'AE-F426C', '2027-09-30', 'Đạt', '0.988', 'Đạt 5 điểm', '2026-11-21', 'CN. Lê Phát Đại', 14.50, 0.65, 38.00, 1.60);
+      add('AE_FER', 'AE1000', 'Ferritin', 'ng/mL', '30 - 400 (Nam) / 13 - 150 (Nữ)', '21.8 - 274.7 (Nam) / 4.6 - 204 (Nữ)', 'AE-FE24A', 'AE-FE26B', '2027-08-31', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Tống Mọng Tiền', 65.0, 3.2, 320.0, 14.0);
+      add('AE_BHCG', 'AE1000', 'Beta-hCG', 'mIU/mL', '< 5.0', '< 5.0 (Không thai)', 'AE-BH24A', 'AE-BH26B', '2027-08-31', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Tống Mọng Tiền', 18.0, 0.9, 240.0, 10.0);
+      add('AE_AFP', 'AE1000', 'AFP', 'ng/mL', '< 7.0', '< 8.78', 'AE-AF24A', 'AE-AF26B', '2027-08-31', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Nguyễn Trường Duy', 12.5, 0.6, 155.0, 6.5);
+      add('AE_CEA', 'AE1000', 'CEA', 'ng/mL', '< 3.4 (Không hút thuốc)', '< 5.0', 'AE-CE24A', 'AE-CE26B', '2027-08-31', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Nguyễn Trường Duy', 3.8, 0.2, 42.0, 1.9);
+
+      // 5. CELLDIFF-580 (13 params)
+      add('CD_WBC', 'CELLDIFF580', 'WBC', 'G/L', '4.0 - 10.0', '4.0 - 10.0', 'CD-LY2401', 'CD-LY2610', '2027-06-30', 'Đạt', '1.000', 'Đạt 5 điểm', '2026-11-18', 'CN. Tống Mọng Tiền', 7.20, 0.25, 19.50, 0.60, 2.40, 0.12);
+      add('CD_RBC', 'CELLDIFF580', 'RBC', 'T/L', '4.2 - 5.9 (Nam) / 3.8 - 5.2 (Nữ)', '4.3 - 5.8 (Nam) / 3.9 - 5.1 (Nữ)', 'CD-DL2401', 'CD-DL2610', '2027-06-30', 'Đạt', '1.005', 'Đạt 5 điểm', '2026-11-18', 'CN. Tống Mọng Tiền', 4.65, 0.12, 5.85, 0.15, 2.35, 0.08);
+      add('CD_HGB', 'CELLDIFF580', 'HGB', 'g/L', '130 - 170 (Nam) / 120 - 155 (Nữ)', '130 - 170 (Nam) / 115 - 155 (Nữ)', 'CD-LY2401', 'CD-LY2610', '2027-06-30', 'Đạt', '0.998', 'Đạt 5 điểm', '2026-11-18', 'CN. Tống Mọng Tiền', 135.0, 2.8, 178.0, 3.5, 68.0, 2.0);
+      add('CD_HCT', 'CELLDIFF580', 'HCT', 'L/L', '0.39 - 0.50', '0.38 - 0.50', 'CD-DL2401', 'CD-DL2610', '2027-06-30', 'Đạt', '1.002', 'Đạt 5 điểm', '2026-11-18', 'CN. Tống Mọng Tiền', 0.41, 0.012, 0.52, 0.015, 0.21, 0.008);
+      add('CD_MCV', 'CELLDIFF580', 'MCV', 'fL', '80 - 98', '80 - 99', 'CD-DL2401', 'CD-DL2610', '2027-06-30', 'Đạt', '1.000', 'Đạt 5 điểm', '2026-11-18', 'CN. Lê Phát Đại', 88.2, 1.5, 92.5, 1.6, 84.0, 1.4);
+      add('CD_MCH', 'CELLDIFF580', 'MCH', 'pg', '27 - 32', '27 - 33', 'CD-DL2401', 'CD-DL2610', '2027-06-30', 'Đạt', '1.000', 'Đạt 5 điểm', '2026-11-18', 'CN. Lê Phát Đại', 29.0, 0.7, 30.5, 0.8, 28.8, 0.7);
+      add('CD_MCHC', 'CELLDIFF580', 'MCHC', 'g/L', '320 - 360', '316 - 354', 'CD-DL2401', 'CD-DL2610', '2027-06-30', 'Đạt', '1.000', 'Đạt 5 điểm', '2026-11-18', 'CN. Lê Phát Đại', 329.0, 6.0, 342.0, 6.5, 323.0, 6.0);
+      add('CD_PLT', 'CELLDIFF580', 'PLT', 'G/L', '150 - 400', '150 - 450', 'CD-DL2401', 'CD-DL2610', '2027-06-30', 'Đạt', '1.010', 'Đạt 5 điểm', '2026-11-18', 'CN. Tống Mọng Tiền', 245.0, 10.0, 480.0, 18.0, 65.0, 4.5);
+      add('CD_NEU', 'CELLDIFF580', 'NEU%', '%', '40 - 74', '40 - 75', 'CD-DF2401', 'CD-DF2610', '2027-06-30', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Tống Mọng Tiền', 58.0, 2.2, 68.0, 2.5, 45.0, 2.0);
+      add('CD_LYM', 'CELLDIFF580', 'LYM%', '%', '19 - 48', '20 - 45', 'CD-DF2401', 'CD-DF2610', '2027-06-30', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Tống Mọng Tiền', 31.0, 1.8, 22.0, 1.5, 42.0, 2.0);
+      add('CD_MONO', 'CELLDIFF580', 'MONO%', '%', '2.0 - 9.0', '2.0 - 10.0', 'CD-DF2401', 'CD-DF2610', '2027-06-30', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Tống Mọng Tiền', 6.5, 1.0, 5.5, 0.9, 8.0, 1.1);
+      add('CD_EOS', 'CELLDIFF580', 'EOS%', '%', '0.5 - 5.0', '0.5 - 6.0', 'CD-DF2401', 'CD-DF2610', '2027-06-30', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Tống Mọng Tiền', 3.2, 0.7, 3.0, 0.7, 3.5, 0.8);
+      add('CD_BASO', 'CELLDIFF580', 'BASO%', '%', '0.0 - 1.5', '0.0 - 1.0', 'CD-DF2401', 'CD-DF2610', '2027-06-30', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Tống Mọng Tiền', 0.8, 0.3, 0.7, 0.3, 0.9, 0.3);
+
+      // 6. URSA-500 (11 params)
+      add('UR_LEU', 'URSA500', 'LEU', 'Leu/µL', 'Âm tính (< 10)', 'Âm tính (< 10)', 'UR-ST24A', 'UR-ST26B', '2027-05-31', 'Đạt', 'Reflectance OK', 'Đạt 5 điểm', '2026-11-22', 'CN. Nguyễn Trường Duy', 0, 0, 75, 10);
+      add('UR_NIT', 'URSA500', 'NIT', 'Định tính', 'Âm tính', 'Âm tính', 'UR-ST24A', 'UR-ST26B', '2027-05-31', 'Đạt', 'Reflectance OK', 'Đạt 5 điểm', '2026-11-22', 'CN. Nguyễn Trường Duy', 0, 0, 1, 0);
+      add('UR_URO', 'URSA500', 'URO', 'µmol/L', '< 16 (Bình thường)', '< 17 (Bình thường)', 'UR-ST24A', 'UR-ST26B', '2027-05-31', 'Đạt', 'Reflectance OK', 'Đạt 5 điểm', '2026-11-22', 'CN. Nguyễn Trường Duy', 3.2, 0.5, 34, 4);
+      add('UR_PRO', 'URSA500', 'PRO', 'g/L', 'Âm tính (< 0.15)', 'Âm tính (< 0.15)', 'UR-ST24A', 'UR-ST26B', '2027-05-31', 'Đạt', 'Reflectance OK', 'Đạt 5 điểm', '2026-11-22', 'CN. Nguyễn Trường Duy', 0, 0, 1.0, 0.15);
+      add('UR_PH', 'URSA500', 'pH', 'pH', '4.8 - 7.4', '5.0 - 8.0', 'UR-ST24A', 'UR-ST26B', '2027-05-31', 'Đạt', 'Reflectance OK', 'Đạt 5 điểm', '2026-11-22', 'CN. Nguyễn Trường Duy', 6.0, 0.25, 8.0, 0.3);
+      add('UR_BLD', 'URSA500', 'BLD', 'Ery/µL', 'Âm tính (< 5)', 'Âm tính (< 5)', 'UR-ST24A', 'UR-ST26B', '2027-05-31', 'Đạt', 'Reflectance OK', 'Đạt 5 điểm', '2026-11-22', 'CN. Nguyễn Trường Duy', 0, 0, 50, 8);
+      add('UR_SG', 'URSA500', 'SG', 'Tỷ trọng', '1.005 - 1.030', '1.005 - 1.030', 'UR-ST24A', 'UR-ST26B', '2027-05-31', 'Đạt', 'Reflectance OK', 'Đạt 5 điểm', '2026-11-22', 'CN. Nguyễn Trường Duy', 1.015, 0.003, 1.025, 0.003);
+      add('UR_KET', 'URSA500', 'KET', 'mmol/L', 'Âm tính', 'Âm tính', 'UR-ST24A', 'UR-ST26B', '2027-05-31', 'Đạt', 'Reflectance OK', 'Đạt 5 điểm', '2026-11-22', 'CN. Nguyễn Trường Duy', 0, 0, 4.0, 0.5);
+      add('UR_BIL', 'URSA500', 'BIL', 'µmol/L', 'Âm tính', 'Âm tính', 'UR-ST24A', 'UR-ST26B', '2027-05-31', 'Đạt', 'Reflectance OK', 'Đạt 5 điểm', '2026-11-22', 'CN. Nguyễn Trường Duy', 0, 0, 17, 2.5);
+      add('UR_GLU', 'URSA500', 'GLU', 'mmol/L', 'Âm tính', 'Âm tính', 'UR-ST24A', 'UR-ST26B', '2027-05-31', 'Đạt', 'Reflectance OK', 'Đạt 5 điểm', '2026-11-22', 'CN. Nguyễn Trường Duy', 0, 0, 14.0, 1.8);
+      add('UR_ASC', 'URSA500', 'ASC', 'mmol/L', 'Âm tính', 'Âm tính (< 0.6)', 'UR-ST24A', 'UR-ST26B', '2027-05-31', 'Chưa chạy', '—', 'Chưa kiểm tra', '', 'CN. Nguyễn Trường Duy', 0, 0, 2.2, 0.3);
+
+      // Seed realistic 7-day IQC sample runs (01/12/2026 - 07/12/2026) on key parameters so charts & Westgard work immediately
+      const seedRuns = (paramId, level, values, locked = false) => {
+        const p = list.find(x => x.id === paramId);
+        if (!p) return;
+        const dates = ['2026-12-01', '2026-12-02', '2026-12-03', '2026-12-04', '2026-12-05', '2026-12-06', '2026-12-07', '2026-12-08'];
+        p.iqc[level].runs = values.map((v, idx) => ({
+          id: `${paramId}_${level}_${idx}`,
+          date: dates[idx],
+          value: v,
+          operator: LAB_STAFF[idx % LAB_STAFF.length],
+          note: idx === 0 ? 'Khởi động lô mới' : 'Chạy nội kiểm sáng 07h00'
+        }));
+        if (locked && values.length >= 5) {
+          const stats = computeStats(values);
+          p.iqc[level].locked = true;
+          p.iqc[level].lockedAt = '2026-12-08 16:30';
+          p.iqc[level].lockedBy = 'CN. Nguyễn Trường Duy';
+          p.iqc[level].lockedMean = stats.mean;
+          p.iqc[level].lockedSd = stats.sd;
+          p.iqc[level].lockedCv = stats.cv;
+        }
+      };
+
+      // Glucose (Monarch 1000) - includes a 1_2s warning on day 5 to demonstrate Westgard alert
+      seedRuns('MN_GLU', 'L1', [5.18, 5.25, 5.12, 5.30, 5.54, 5.21, 5.16], true);
+      seedRuns('MN_GLU', 'L2', [14.75, 14.90, 14.62, 15.05, 14.85, 14.70, 14.88], true);
+
+      // Creatinine (Monarch 1000) - includes 2_2s demonstration on L2
+      seedRuns('MN_CRE', 'L1', [87.5, 89.0, 86.2, 88.8, 90.1, 87.9, 88.4], false);
+      seedRuns('MN_CRE', 'L2', [422, 418, 435, 446, 449, 421, 419], false);
+
+      // Na+ (Electalyte 500)
+      seedRuns('EL_NA', 'L1', [139.8, 140.5, 139.2, 141.0, 140.1, 139.6], true);
+      seedRuns('EL_NA', 'L2', [154.5, 155.8, 153.9, 156.2, 155.1, 154.8], true);
+
+      // PT giây (Thrombo Fast)
+      seedRuns('TH_PTS', 'L1', [11.9, 12.1, 11.8, 12.3, 12.0, 11.95], true);
+      seedRuns('TH_PTS', 'L2', [28.2, 29.0, 27.9, 28.8, 28.4], false);
+
+      // TSH (AE 1000)
+      seedRuns('AE_TSH', 'L1', [1.42, 1.48, 1.39, 1.50, 1.44, 1.46], true);
+      seedRuns('AE_TSH', 'L2', [18.1, 18.5, 17.8, 18.4, 18.0], false);
+
+      // WBC & HGB & PLT (CELLDIFF-580)
+      seedRuns('CD_WBC', 'L1', [7.15, 7.28, 7.05, 7.32, 7.18, 7.22], true);
+      seedRuns('CD_WBC', 'L2', [19.4, 19.8, 19.1, 19.7, 19.5], true);
+      seedRuns('CD_HGB', 'L1', [134, 136, 135, 137, 133, 135], true);
+      seedRuns('CD_PLT', 'L1', [242, 248, 239, 252, 244, 246], false);
+
+      // URSA-500 pH & SG
+      seedRuns('UR_PH', 'L1', [6.0, 6.0, 6.0, 6.5, 6.0, 6.0], true);
+      seedRuns('UR_SG', 'L1', [1.015, 1.015, 1.015, 1.020, 1.015, 1.015], true);
+
+      return list;
+    }
+
+    function makeDefaultEqa() {
+      return [
+        {
+          id: 'EQA_HH',
+          group: 'Huyết học (CELLDIFF-580)',
+          machineId: 'CELLDIFF580',
+          program: 'Ngoại kiểm Huyết học Tổng phân tích tế bào máu (CBC)',
+          provider: 'TT Kiểm chuẩn CL XN Y học – ĐHYD TP.HCM',
+          labCode: 'PXN-TAVD-HH01',
+          portalUrl: 'https://eqa.csql.vn',
+          username: 'ta_vd_huyethoc',
+          securityNote: 'Đổi mật khẩu định kỳ 90 ngày; người giữ token: CN. Nguyễn Trường Duy',
+          accountStatus: 'Hoạt động',
+          receiveDate: '2026-12-02',
+          deadline: '2026-12-10',
+          sampleStatus: 'Đã nhận'
+        },
+        {
+          id: 'EQA_SH',
+          group: 'Sinh hóa (Monarch 1000)',
+          machineId: 'MONARCH1000',
+          program: 'Ngoại kiểm Sinh hóa Máu thường quy (15 thông số)',
+          provider: 'TT Kiểm chuẩn CL XN Y học – ĐHYD TP.HCM',
+          labCode: 'PXN-TAVD-SH02',
+          portalUrl: 'https://eqa.csql.vn',
+          username: 'ta_vd_sinhhoa',
+          securityNote: 'Đã kích hoạt OTP qua email khoa; sao lưu mã dự phòng tại tủ QLCL',
+          accountStatus: 'Hoạt động',
+          receiveDate: '2026-12-01',
+          deadline: '2026-12-09',
+          sampleStatus: 'Đã chạy'
+        },
+        {
+          id: 'EQA_MD',
+          group: 'Miễn dịch (AE 1000)',
+          machineId: 'AE1000',
+          program: 'Ngoại kiểm Miễn dịch (Tuyến giáp, Dấu ấn khối u & Viêm gan)',
+          provider: 'TT Kiểm chuẩn CL XN Y học – ĐHYD TP.HCM',
+          labCode: 'PXN-TAVD-MD03',
+          portalUrl: 'https://eqa.csql.vn',
+          username: 'ta_vd_miendich',
+          securityNote: 'Chưa đăng nhập lại sau thời gian tạm ngưng; cần gửi yêu cầu reset mật khẩu trước 01/12',
+          accountStatus: 'Cần reset mật khẩu',
+          receiveDate: '2026-12-03',
+          deadline: '2026-12-11',
+          sampleStatus: 'Chưa nhận'
+        },
+        {
+          id: 'EQA_DM',
+          group: 'Đông máu (Thrombo Fast)',
+          machineId: 'THROMBO',
+          program: 'Ngoại kiểm Đông máu cơ bản (PT, INR, APTT, Fibrinogen)',
+          provider: 'TT Kiểm chuẩn XN Hà Nội / Bộ Y tế',
+          labCode: 'BYT-TAVD-DM04',
+          portalUrl: 'https://kiemchuanxetnghiem.vn',
+          username: 'tavd_dongmau',
+          securityNote: 'Tài khoản hoạt động bình thường; kiểm tra nhiệt độ bảo quản -20°C khi nhận mẫu',
+          accountStatus: 'Hoạt động',
+          receiveDate: '2026-12-04',
+          deadline: '2026-12-14',
+          sampleStatus: 'Chưa nhận'
+        },
+        {
+          id: 'EQA_NT',
+          group: 'Nước tiểu (URSA-500)',
+          machineId: 'URSA500',
+          program: 'Ngoại kiểm Tổng phân tích nước tiểu 11 thông số',
+          provider: 'TT Kiểm chuẩn CL XN Y học – ĐHYD TP.HCM',
+          labCode: 'PXN-TAVD-NT05',
+          portalUrl: 'https://eqa.csql.vn',
+          username: 'ta_vd_nuoctieu',
+          securityNote: 'Đã kiểm tra đăng nhập thử ngày 20/11/2026 thành công',
+          accountStatus: 'Hoạt động',
+          receiveDate: '2026-11-28',
+          deadline: '2026-12-05',
+          sampleStatus: 'Đã gửi KQ'
+        },
+        {
+          id: 'EQA_DG',
+          group: 'Điện giải (Electalyte 500)',
+          machineId: 'ELEC500',
+          program: 'Ngoại kiểm Điện giải đồ (Na+, K+, Cl-, iCa)',
+          provider: 'TT Kiểm chuẩn CL XN Y học – ĐHYD TP.HCM',
+          labCode: 'PXN-TAVD-DG06',
+          portalUrl: 'https://eqa.csql.vn',
+          username: 'ta_vd_diengiai',
+          securityNote: 'Cần xác nhận lại email nhận thông báo đợt cuối năm 2026',
+          accountStatus: 'Cần reset mật khẩu',
+          receiveDate: '2026-12-03',
+          deadline: '2026-12-11',
+          sampleStatus: 'Chưa nhận'
+        }
+      ];
+    }
+
+    // =========================================================================
+    // 2. APPLICATION STATE & STORAGE (LOCAL + CLOUD SUPABASE SYNC)
+    // =========================================================================
+    const BACKEND_API = (window.location.hostname.includes('pages.dev')) ? 'https://khoa-xet-nghiem.onrender.com' : '';
+    const IS_LAN_SERVER = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+    let lastServerVersion = null;
+    let isSyncingFromServer = false;
+    let pushTimer = null;
+
+    function buildApiHeaders(includeJson = false) {
+      const headers = {};
+      if (includeJson) headers['Content-Type'] = 'application/json; charset=utf-8';
+      const token = localStorage.getItem('token');
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      return headers;
+    }
+
+    let appState = {
+      activeTab: 'tab1',
+      tab1MachineFilter: 'ALL',
+      iqcSelectedMachine: 'MONARCH1000',
+      iqcSelectedParamId: 'MN_GLU',
+      parameters: [],
+      eqaPrograms: [],
+      lastSaved: null
+    };
+
+    let ljChartInstance = null;
+    let readinessChartInstance = null;
+
+    function updateSaveBadge(text, isError = false) {
+      const badge = document.getElementById('saveStatusBadge');
+      const dot = document.getElementById('saveStatusDot');
+      const txt = document.getElementById('saveStatusText');
+      if (!badge || !txt) return;
+      txt.textContent = text;
+      if (isError) {
+        badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200';
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-500';
+      } else {
+        badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200';
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+      }
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.parameters) && Array.isArray(parsed.eqaPrograms)) {
+            appState = { ...appState, ...parsed };
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not parse localStorage:', e);
+      }
+      appState.parameters = makeDefaultParameters();
+      appState.eqaPrograms = makeDefaultEqa();
+      saveState(false, false);
+    }
+
+    function saveState(showToastMsg = false, syncLan = true) {
+      try {
+        appState.lastSaved = new Date().toISOString();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        if (IS_LAN_SERVER && syncLan && !isSyncingFromServer) {
+          updateSaveBadge(`Đang đồng bộ LAN...`);
+          clearTimeout(pushTimer);
+          pushTimer = setTimeout(() => pushToLanServer(showToastMsg), 150);
+        } else {
+          updateSaveBadge(`Đã lưu (${hh}:${mm})`);
+          if (showToastMsg) showToast('Đã lưu dữ liệu tự động.', 'success');
+        }
+      } catch (e) {
+        showToast('Lỗi lưu dữ liệu vào localStorage: ' + e.message, 'error');
+      }
+    }
+
+    async function pushToLanServer(showToastMsg = false) {
+      if (!IS_LAN_SERVER) return;
+      try {
+        const res = await fetch(BACKEND_API + '/api/qaqc/state', {
+          method: 'POST',
+          headers: buildApiHeaders(true),
+          body: JSON.stringify(appState)
+        });
+        if (res.status === 401) {
+          updateSaveBadge('Chưa đăng nhập hệ thống', true);
+          return;
+        }
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const result = await res.json();
+        if (result && result.version) lastServerVersion = result.version;
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        updateSaveBadge(`Đã đồng bộ Cloud (${hh}:${mm})`);
+        if (showToastMsg) showToast('Đã đồng bộ dữ liệu lên máy chủ Khoa.', 'success');
+      } catch (e) {
+        updateSaveBadge('Mất kết nối Cloud (Lưu cục bộ)', true);
+      }
+    }
+
+    function isUserEditingLocally() {
+      const openModals = ['paramModal', 'eqaModal', 'printModalBackdrop'].some(id => !document.getElementById(id).classList.contains('hidden'));
+      if (openModals) return true;
+      const activeEl = document.activeElement;
+      if (activeEl && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeEl.tagName)) return true;
+      return false;
+    }
+
+    async function syncFromLanServer(isInitial = false, showFeedback = false) {
+      if (!IS_LAN_SERVER) return;
+      if (!isInitial && isUserEditingLocally()) return;
+      try {
+        const res = await fetch(BACKEND_API + '/api/qaqc/state?t=' + Date.now(), {
+          cache: 'no-store',
+          headers: buildApiHeaders(false)
+        });
+        if (res.status === 401) {
+          updateSaveBadge('Vui lòng đăng nhập cổng Khoa', true);
+          return;
+        }
+        if (!res.ok) return;
+        const payload = await res.json();
+        if (payload && payload.exists && payload.data && Array.isArray(payload.data.parameters)) {
+          if (payload.version && payload.version !== lastServerVersion) {
+            isSyncingFromServer = true;
+            const currentTab = appState.activeTab;
+            const currentTab1Filter = appState.tab1MachineFilter;
+            const currentIqcMachine = appState.iqcSelectedMachine;
+            const currentIqcParam = appState.iqcSelectedParamId;
+            appState = {
+              ...appState,
+              ...payload.data,
+              activeTab: isInitial ? (payload.data.activeTab || 'tab1') : currentTab,
+              tab1MachineFilter: isInitial ? (payload.data.tab1MachineFilter || 'ALL') : currentTab1Filter,
+              iqcSelectedMachine: isInitial ? (payload.data.iqcSelectedMachine || 'MONARCH1000') : currentIqcMachine,
+              iqcSelectedParamId: isInitial ? (payload.data.iqcSelectedParamId || 'MN_GLU') : currentIqcParam
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            lastServerVersion = payload.version;
+            renderAll();
+            isSyncingFromServer = false;
+            const now = new Date();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            const byText = payload.updated_by ? ` • ${payload.updated_by}` : '';
+            updateSaveBadge(`Đã đồng bộ Cloud (${hh}:${mm})${byText}`);
+            if (!isInitial) {
+              showToast('Đã cập nhật dữ liệu QA/QC mới từ máy chủ Khoa.', 'info');
+            } else if (showFeedback) {
+              showToast('Đã tải dữ liệu QA/QC dùng chung từ máy chủ Khoa.', 'success');
+            }
+          } else if (showFeedback) {
+            showToast('Dữ liệu đang ở phiên bản mới nhất.', 'info');
+          }
+        } else if (isInitial) {
+          await pushToLanServer(false);
+        }
+      } catch (e) {
+        if (isInitial || showFeedback) {
+          updateSaveBadge('Chưa kết nối được máy chủ Khoa', true);
+        }
+      }
+    }
+
+    function manualLanSync() {
+      syncFromLanServer(false, true);
+    }
+
+    function resetToDefaultData() {
+      if (!confirm('Bạn có chắc muốn khôi phục toàn bộ dữ liệu mẫu mặc định cho 6 máy? Mọi chỉnh sửa chưa sao lưu sẽ bị thay thế.')) return;
+      appState.parameters = makeDefaultParameters();
+      appState.eqaPrograms = makeDefaultEqa();
+      appState.iqcSelectedMachine = 'MONARCH1000';
+      appState.iqcSelectedParamId = 'MN_GLU';
+      saveState();
+      renderAll();
+      showToast('Đã khôi phục dữ liệu mẫu chuẩn cho 6 máy xét nghiệm.', 'info');
+    }
+
+    // =========================================================================
+    // 3. MATH & WESTGARD ENGINE (ZERO-DIVISION SAFE)
+    // =========================================================================
+    function computeStats(values) {
+      const nums = values.map(Number).filter(v => Number.isFinite(v));
+      const n = nums.length;
+      if (n === 0) {
+        return { n: 0, mean: null, sd: null, cv: null };
+      }
+      const sum = nums.reduce((acc, v) => acc + v, 0);
+      const mean = sum / n;
+      if (n < 2) {
+        // Guard against N - 1 = 0
+        return { n, mean, sd: null, cv: null };
+      }
+      const variance = nums.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / (n - 1);
+      const sd = Math.sqrt(variance);
+      const cv = mean !== 0 ? (sd / Math.abs(mean)) * 100 : null;
+      return { n, mean, sd, cv };
+    }
+
+    function formatNum(val, decimals = 2) {
+      if (val === null || val === undefined || Number.isNaN(val)) return '—';
+      const abs = Math.abs(val);
+      if (abs > 0 && abs < 0.1) decimals = 3;
+      else if (abs >= 100) decimals = 1;
+      return Number(val).toFixed(decimals);
+    }
+
+    /**
+     * Evaluate Westgard Rules on chronologically ordered runs.
+     * Also checks cross-level R4s & 2_2s on the same date if other levels exist.
+     */
+    function evaluateWestgard(runs, refMean, refSd, otherLevelRunsByDate = {}) {
+      const hasRef = Number.isFinite(refMean) && Number.isFinite(refSd) && refSd > 0;
+      const evaluated = runs.map((r, i) => ({
+        ...r,
+        index: i + 1,
+        z: hasRef ? (Number(r.value) - refMean) / refSd : null,
+        rules: [],
+        severity: 'ok' // 'ok' | 'warning' | 'reject'
+      }));
+
+      if (!hasRef) return { points: evaluated, hasReject: false, hasWarning: false, summaryRules: [] };
+
+      const summarySet = new Set();
+
+      for (let i = 0; i < evaluated.length; i++) {
+        const cur = evaluated[i];
+        const z = cur.z;
+        const absZ = Math.abs(z);
+
+        // 1_3s (Reject - Random error)
+        if (absZ > 3) {
+          cur.rules.push({ code: '1_3s', label: '1₃ₛ (Loại bỏ - Sai số ngẫu nhiên)', type: 'reject' });
+        } else if (absZ > 2) {
+          // 1_2s (Warning)
+          cur.rules.push({ code: '1_2s', label: '1₂ₛ (Cảnh báo vượt ±2SD)', type: 'warning' });
+        }
+
+        // 2_2s same level (2 consecutive > +2SD or < -2SD)
+        if (i >= 1) {
+          const prev = evaluated[i - 1];
+          if ((z > 2 && prev.z > 2) || (z < -2 && prev.z < -2)) {
+            cur.rules.push({ code: '2_2s', label: '2₂ₛ (Loại bỏ - Sai số hệ thống)', type: 'reject' });
+          }
+          // R_4s same level (|z_i - z_{i-1}| > 4 and opposite sides exceeding 2SD)
+          if (Math.abs(z - prev.z) > 4 && ((z > 2 && prev.z < -2) || (z < -2 && prev.z > 2))) {
+            cur.rules.push({ code: 'R_4s', label: 'R₄ₛ (Loại bỏ - Sai số ngẫu nhiên)', type: 'reject' });
+          }
+        }
+
+        // Cross-level 2_2s & R_4s on same date
+        const peers = otherLevelRunsByDate[cur.date] || [];
+        for (const pz of peers) {
+          if ((z > 2 && pz > 2) || (z < -2 && pz < -2)) {
+            if (!cur.rules.some(x => x.code === '2_2s')) {
+              cur.rules.push({ code: '2_2s', label: '2₂ₛ liên mức (Loại bỏ - Sai số hệ thống)', type: 'reject' });
+            }
+          }
+          if (Math.abs(z - pz) > 4) {
+            if (!cur.rules.some(x => x.code === 'R_4s')) {
+              cur.rules.push({ code: 'R_4s', label: 'R₄ₛ liên mức (Loại bỏ - Sai số ngẫu nhiên)', type: 'reject' });
+            }
+          }
+        }
+
+        // 4_1s (4 consecutive > +1SD or < -1SD)
+        if (i >= 3) {
+          const slice4 = evaluated.slice(i - 3, i + 1);
+          if (slice4.every(p => p.z > 1) || slice4.every(p => p.z < -1)) {
+            cur.rules.push({ code: '4_1s', label: '4₁ₛ (Loại bỏ - Sai số hệ thống)', type: 'reject' });
+          }
+        }
+
+        // 10_x (10 consecutive on same side of Mean)
+        if (i >= 9) {
+          const slice10 = evaluated.slice(i - 9, i + 1);
+          if (slice10.every(p => p.z > 0) || slice10.every(p => p.z < 0)) {
+            cur.rules.push({ code: '10_x', label: '10ₓ (Loại bỏ - Trôi hệ thống)', type: 'reject' });
+          }
+        }
+
+        if (cur.rules.some(r => r.type === 'reject')) {
+          cur.severity = 'reject';
+        } else if (cur.rules.some(r => r.type === 'warning')) {
+          cur.severity = 'warning';
+        }
+        cur.rules.forEach(r => summarySet.add(r.code));
+      }
+
+      return {
+        points: evaluated,
+        hasReject: evaluated.some(p => p.severity === 'reject'),
+        hasWarning: evaluated.some(p => p.severity === 'warning'),
+        summaryRules: Array.from(summarySet)
+      };
+    }
+
+    function getWestgardRemediation(ruleCodes) {
+      const advice = [];
+      if (ruleCodes.includes('1_3s')) {
+        advice.push('• Vi phạm 1₃ₛ (Sai số ngẫu nhiên): Dừng trả KQ, kiểm tra bọt khí đường ống/kim hút, hoàn nguyên/rã đông lại mẫu QC mới và chạy lại.');
+      }
+      if (ruleCodes.includes('R_4s')) {
+        advice.push('• Vi phạm R₄ₛ (Sai số ngẫu nhiên): Kiểm tra độ lặp lại pipet/kim hút, van rửa cuvette và nhiệt độ buồng phản ứng.');
+      }
+      if (ruleCodes.includes('2_2s')) {
+        advice.push('• Vi phạm 2₂ₛ (Sai số hệ thống): Kiểm tra hạn dùng & bảo quản hóa chất, bóng đèn/điện cực và thực hiện Calib lại thông số.');
+      }
+      if (ruleCodes.includes('4_1s') || ruleCodes.includes('10_x')) {
+        advice.push('• Vi phạm 4₁ₛ / 10ₓ (Trôi hệ thống): Kiểm tra hiện tượng trôi đường chuẩn (drift), thay lô thuốc thử/hóa chất mới nếu cần và chạy lại Calib.');
+      }
+      if (ruleCodes.includes('1_2s') && advice.length === 0) {
+        advice.push('• Cảnh báo 1₂ₛ: Chưa loại bỏ ngay; theo dõi sát điểm chạy kế tiếp và kiểm tra tình trạng mẫu QC.');
+      }
+      return advice;
+    }
+
+    // =========================================================================
+    // 4. HELPER UTILITIES
+    // =========================================================================
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function getMachineName(machineId) {
+      const m = MACHINES.find(x => x.id === machineId);
+      return m ? m.name : machineId;
+    }
+
+    function isLotChanged(param) {
+      const oldL = (param.oldLot || '').trim().toLowerCase();
+      const newL = (param.newLot || '').trim().toLowerCase();
+      return oldL !== '' && newL !== '' && oldL !== newL;
+    }
+
+    function formatDateVN(isoDate) {
+      if (!isoDate) return '—';
+      const parts = isoDate.split('-');
+      if (parts.length !== 3) return isoDate;
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    function daysUntil(targetDateStr) {
+      if (!targetDateStr) return null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(targetDateStr + 'T00:00:00');
+      return Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const colors = {
+        success: 'bg-emerald-600 text-white',
+        error: 'bg-red-600 text-white',
+        warning: 'bg-amber-500 text-white',
+        info: 'bg-slate-800 text-white'
+      };
+      const div = document.createElement('div');
+      div.className = `px-4 py-2.5 rounded-lg shadow-lg text-xs font-semibold flex items-center gap-2 transition-opacity ${colors[type] || colors.info}`;
+      div.textContent = message;
+      container.appendChild(div);
+      setTimeout(() => {
+        div.style.opacity = '0';
+        setTimeout(() => div.remove(), 300);
+      }, 3200);
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function switchTab(tabId) {
+      appState.activeTab = tabId;
+      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-medical-600', 'text-white', 'shadow-sm');
+        btn.classList.add('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
+        const badge = btn.querySelector('span');
+        badge.classList.remove('bg-white', 'text-medical-700');
+        badge.classList.add('bg-slate-300', 'text-slate-700');
+      });
+
+      const activeBtn = document.getElementById('btn-' + tabId);
+      activeBtn.classList.remove('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
+      activeBtn.classList.add('bg-medical-600', 'text-white', 'shadow-sm');
+      const activeBadge = activeBtn.querySelector('span');
+      activeBadge.classList.remove('bg-slate-300', 'text-slate-700');
+      activeBadge.classList.add('bg-white', 'text-medical-700');
+
+      if (tabId === 'tab2') renderTab2();
+      if (tabId === 'tab3') renderTab3();
+      if (tabId === 'tab4') renderTab4();
+    }
+
+    // =========================================================================
+    // 5. TAB 1: CALIBRATION & LINEARITY RENDERING & ACTIONS
+    // =========================================================================
+    function renderTab1() {
+      // Render machine pills
+      const pillsEl = document.getElementById('tab1MachineFilters');
+      const allCount = appState.parameters.length;
+      let pillsHtml = `<button onclick="setTab1Machine('ALL')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${appState.tab1MachineFilter === 'ALL' ? 'bg-medical-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">Tất cả 6 máy (${allCount})</button>`;
+      MACHINES.forEach(m => {
+        const cnt = appState.parameters.filter(p => p.machineId === m.id).length;
+        const active = appState.tab1MachineFilter === m.id;
+        pillsHtml += `<button onclick="setTab1Machine('${m.id}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${active ? 'bg-medical-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">${escapeHtml(m.name)} (${cnt})</button>`;
+      });
+      pillsEl.innerHTML = pillsHtml;
+
+      const q = (document.getElementById('tab1Search').value || '').trim().toLowerCase();
+      const alertFilter = document.getElementById('tab1AlertFilter').value;
+
+      let filtered = appState.parameters.filter(p => {
+        if (appState.tab1MachineFilter !== 'ALL' && p.machineId !== appState.tab1MachineFilter) return false;
+        if (q) {
+          const hay = `${p.name} ${p.oldLot} ${p.newLot} ${p.operator} ${getMachineName(p.machineId)}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        const lotChanged = isLotChanged(p);
+        const isDone = p.calibStatus === 'Đạt' && p.linearityStatus === 'Đạt 5 điểm';
+        if (alertFilter === 'LOT_CHANGED' && !lotChanged) return false;
+        if (alertFilter === 'PENDING_CALIB' && isDone) return false;
+        if (alertFilter === 'DONE' && !isDone) return false;
+        return true;
+      });
+
+      const doneCount = filtered.filter(p => p.calibStatus === 'Đạt' && p.linearityStatus === 'Đạt 5 điểm').length;
+      const lotWarnCount = filtered.filter(p => isLotChanged(p)).length;
+      document.getElementById('tab1SummaryStrip').innerHTML = `
+        <span>Hiển thị: <strong>${filtered.length}</strong> thông số</span>
+        <span class="text-slate-300">|</span>
+        <span class="text-emerald-700 font-semibold">Đạt chuẩn: ${doneCount}/${filtered.length}</span>
+        <span class="text-slate-300">|</span>
+        <span class="text-red-600 font-semibold">Đổi lô: ${lotWarnCount}</span>
+      `;
+
+      const tbody = document.getElementById('tab1TableBody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="13" class="px-4 py-8 text-center text-slate-400">Không có thông số nào phù hợp bộ lọc.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((p, idx) => {
+        const lotChanged = isLotChanged(p);
+        const expDays = daysUntil(p.exp);
+        const expWarn = expDays !== null && expDays <= 30;
+        const calibBadge = p.calibStatus === 'Đạt'
+          ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+          : p.calibStatus === 'Không đạt'
+            ? 'bg-red-100 text-red-800 border-red-200'
+            : 'bg-slate-100 text-slate-700 border-slate-200';
+        const linBadge = p.linearityStatus === 'Đạt 5 điểm'
+          ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+          : p.linearityStatus === 'Không đạt'
+            ? 'bg-red-100 text-red-800 border-red-200'
+            : 'bg-amber-50 text-amber-800 border-amber-200';
+
+        const alertHtml = lotChanged
+          ? `<div class="space-y-1">
+               <span class="inline-block px-2 py-1 rounded bg-red-600 text-white font-bold text-[10px] leading-tight shadow-sm">
+                 BẮT BUỘC CHẠY LẠI CALIB &amp; KIỂM TRA ĐỘ TUYẾN TÍNH (LINEARITY)
+               </span>
+               ${(p.calibStatus === 'Đạt' && p.linearityStatus === 'Đạt 5 điểm')
+                 ? '<div class="text-[10px] font-semibold text-emerald-700">✓ Đã hoàn tất Calib &amp; Linearity lô mới</div>'
+                 : '<div class="text-[10px] font-semibold text-red-700">⚠ Chưa hoàn tất xác nhận lô mới</div>'}
+             </div>`
+          : `<span class="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-medium">Giữ nguyên số lô</span>`;
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="px-3 py-2.5 whitespace-nowrap">
+              <div class="font-bold text-slate-500">#${idx + 1}</div>
+              <div class="text-[11px] font-semibold text-medical-700">${escapeHtml(getMachineName(p.machineId))}</div>
+            </td>
+            <td class="px-3 py-2.5 font-bold text-slate-900 whitespace-nowrap">${escapeHtml(p.name)}</td>
+            <td class="px-3 py-2.5 text-center text-slate-600 whitespace-nowrap">${escapeHtml(p.unit)}</td>
+            <td class="px-3 py-2.5 text-slate-500 max-w-[140px]">${escapeHtml(p.oldRef)}</td>
+            <td class="px-3 py-2.5 font-semibold text-medical-900 bg-medical-50/40 max-w-[160px]">${escapeHtml(p.newRef)}</td>
+            <td class="px-3 py-2.5 font-mono text-[11px] text-slate-600 whitespace-nowrap">${escapeHtml(p.oldLot || '—')}</td>
+            <td class="px-3 py-2.5 whitespace-nowrap">
+              <div class="font-mono text-[11px] font-bold ${lotChanged ? 'text-red-700' : 'text-slate-800'}">${escapeHtml(p.newLot || '—')}</div>
+              <div class="text-[10px] ${expWarn ? 'text-red-600 font-bold' : 'text-slate-500'}">EXP: ${formatDateVN(p.exp)}</div>
+            </td>
+            <td class="px-3 py-2.5">${alertHtml}</td>
+            <td class="px-3 py-2.5 text-center whitespace-nowrap">
+              <select onchange="quickUpdateParam('${p.id}', 'calibStatus', this.value)" class="px-2 py-1 rounded border text-[11px] font-semibold ${calibBadge}">
+                <option value="Chưa chạy" ${p.calibStatus === 'Chưa chạy' ? 'selected' : ''}>Chưa chạy</option>
+                <option value="Đạt" ${p.calibStatus === 'Đạt' ? 'selected' : ''}>Đạt</option>
+                <option value="Không đạt" ${p.calibStatus === 'Không đạt' ? 'selected' : ''}>Không đạt</option>
+              </select>
+            </td>
+            <td class="px-3 py-2.5 text-center font-mono text-[11px] text-slate-700 whitespace-nowrap">${escapeHtml(p.factor || '—')}</td>
+            <td class="px-3 py-2.5 text-center whitespace-nowrap">
+              <select onchange="quickUpdateParam('${p.id}', 'linearityStatus', this.value)" class="px-2 py-1 rounded border text-[11px] font-semibold ${linBadge}">
+                <option value="Chưa kiểm tra" ${p.linearityStatus === 'Chưa kiểm tra' ? 'selected' : ''}>Chưa kiểm tra</option>
+                <option value="Đạt 5 điểm" ${p.linearityStatus === 'Đạt 5 điểm' ? 'selected' : ''}>Đạt 5 điểm</option>
+                <option value="Không đạt" ${p.linearityStatus === 'Không đạt' ? 'selected' : ''}>Không đạt</option>
+              </select>
+            </td>
+            <td class="px-3 py-2.5 text-center whitespace-nowrap">
+              <div class="text-[11px] text-slate-700">${formatDateVN(p.date)}</div>
+              <div class="text-[10px] font-medium text-slate-500">${escapeHtml(p.operator || '—')}</div>
+            </td>
+            <td class="px-3 py-2.5 text-center whitespace-nowrap">
+              <div class="inline-flex items-center gap-1">
+                <button onclick="openParamModal('${p.id}')" class="px-2 py-1 rounded bg-medical-50 text-medical-700 hover:bg-medical-100 font-semibold text-[11px]">Sửa</button>
+                <button onclick="jumpToIqc('${p.machineId}', '${p.id}')" title="Mở biểu đồ IQC thông số này" class="px-2 py-1 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold text-[11px]">IQC</button>
+                <button onclick="deleteParam('${p.id}')" class="px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 font-semibold text-[11px]">Xóa</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function setTab1Machine(machineId) {
+      appState.tab1MachineFilter = machineId;
+      renderTab1();
+    }
+
+    function quickUpdateParam(id, field, value) {
+      const p = appState.parameters.find(x => x.id === id);
+      if (!p) return;
+      p[field] = value;
+      if (!p.date && (value === 'Đạt' || value === 'Đạt 5 điểm')) {
+        p.date = new Date().toISOString().slice(0, 10);
+      }
+      saveState();
+      renderTab1();
+    }
+
+    function openParamModal(paramId = null) {
+      const mSel = document.getElementById('pmMachine');
+      mSel.innerHTML = MACHINES.map(m => `<option value="${m.id}">${escapeHtml(m.name)} (${escapeHtml(m.group)})</option>`).join('');
+      const opSel = document.getElementById('pmOperator');
+      opSel.innerHTML = LAB_STAFF.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+
+      if (paramId) {
+        const p = appState.parameters.find(x => x.id === paramId);
+        if (!p) return;
+        document.getElementById('paramModalTitle').textContent = `Chỉnh sửa thông số: ${p.name} (${getMachineName(p.machineId)})`;
+        document.getElementById('editParamId').value = p.id;
+        mSel.value = p.machineId;
+        document.getElementById('pmName').value = p.name;
+        document.getElementById('pmUnit').value = p.unit;
+        document.getElementById('pmOldRef').value = p.oldRef;
+        document.getElementById('pmNewRef').value = p.newRef;
+        document.getElementById('pmOldLot').value = p.oldLot;
+        document.getElementById('pmNewLot').value = p.newLot;
+        document.getElementById('pmExp').value = p.exp || '';
+        document.getElementById('pmCalibStatus').value = p.calibStatus;
+        document.getElementById('pmFactor').value = p.factor || '';
+        document.getElementById('pmLinearityStatus').value = p.linearityStatus;
+        document.getElementById('pmDate').value = p.date || '';
+        opSel.value = LAB_STAFF.includes(p.operator) ? p.operator : LAB_STAFF[0];
+      } else {
+        document.getElementById('paramModalTitle').textContent = 'Thêm thông số xét nghiệm mới';
+        document.getElementById('editParamId').value = '';
+        mSel.value = appState.tab1MachineFilter !== 'ALL' ? appState.tab1MachineFilter : MACHINES[0].id;
+        document.getElementById('pmName').value = '';
+        document.getElementById('pmUnit').value = '';
+        document.getElementById('pmOldRef').value = '';
+        document.getElementById('pmNewRef').value = '';
+        document.getElementById('pmOldLot').value = '';
+        document.getElementById('pmNewLot').value = '';
+        document.getElementById('pmExp').value = '2027-12-31';
+        document.getElementById('pmCalibStatus').value = 'Chưa chạy';
+        document.getElementById('pmFactor').value = '—';
+        document.getElementById('pmLinearityStatus').value = 'Chưa kiểm tra';
+        document.getElementById('pmDate').value = new Date().toISOString().slice(0, 10);
+        opSel.value = LAB_STAFF[0];
+      }
+      openModal('paramModal');
+    }
+
+    function saveParamForm(e) {
+      e.preventDefault();
+      const editId = document.getElementById('editParamId').value;
+      const payload = {
+        machineId: document.getElementById('pmMachine').value,
+        name: document.getElementById('pmName').value.trim(),
+        unit: document.getElementById('pmUnit').value.trim(),
+        oldRef: document.getElementById('pmOldRef').value.trim(),
+        newRef: document.getElementById('pmNewRef').value.trim(),
+        oldLot: document.getElementById('pmOldLot').value.trim(),
+        newLot: document.getElementById('pmNewLot').value.trim(),
+        exp: document.getElementById('pmExp').value,
+        calibStatus: document.getElementById('pmCalibStatus').value,
+        factor: document.getElementById('pmFactor').value.trim(),
+        linearityStatus: document.getElementById('pmLinearityStatus').value,
+        date: document.getElementById('pmDate').value,
+        operator: document.getElementById('pmOperator').value
+      };
+
+      if (editId) {
+        const idx = appState.parameters.findIndex(x => x.id === editId);
+        if (idx !== -1) {
+          appState.parameters[idx] = { ...appState.parameters[idx], ...payload };
+          showToast(`Đã cập nhật thông số ${payload.name}.`, 'success');
+        }
+      } else {
+        const newId = 'CUSTOM_' + Date.now();
+        appState.parameters.push({
+          id: newId,
+          ...payload,
+          iqc: {
+            L1: { lot: `QC-${payload.machineId}-L1`, exp: '2027-06-30', targetMean: '', targetSd: '', runs: [], locked: false, lockedAt: null, lockedBy: null, lockedMean: null, lockedSd: null, lockedCv: null },
+            L2: { lot: `QC-${payload.machineId}-L2`, exp: '2027-06-30', targetMean: '', targetSd: '', runs: [], locked: false, lockedAt: null, lockedBy: null, lockedMean: null, lockedSd: null, lockedCv: null },
+            L3: { lot: `QC-${payload.machineId}-L3`, exp: '2027-06-30', targetMean: '', targetSd: '', runs: [], locked: false, lockedAt: null, lockedBy: null, lockedMean: null, lockedSd: null, lockedCv: null }
+          }
+        });
+        showToast(`Đã thêm thông số mới ${payload.name}.`, 'success');
+      }
+      saveState();
+      closeModal('paramModal');
+      renderTab1();
+    }
+
+    function deleteParam(id) {
+      const p = appState.parameters.find(x => x.id === id);
+      if (!p) return;
+      if (!confirm(`Xác nhận xóa thông số "${p.name}" của máy ${getMachineName(p.machineId)}?`)) return;
+      appState.parameters = appState.parameters.filter(x => x.id !== id);
+      saveState();
+      renderTab1();
+      showToast(`Đã xóa thông số ${p.name}.`, 'info');
+    }
+
+    function jumpToIqc(machineId, paramId) {
+      appState.iqcSelectedMachine = machineId;
+      appState.iqcSelectedParamId = paramId;
+      switchTab('tab2');
+    }
+
+    // =========================================================================
+    // 6. TAB 2: IQC & LEVEY-JENNINGS RENDERING & ACTIONS
+    // =========================================================================
+    function populateIqcSelectors() {
+      const mSel = document.getElementById('iqcMachineSelect');
+      mSel.innerHTML = MACHINES.map(m => `<option value="${m.id}">${escapeHtml(m.name)} – ${escapeHtml(m.group)}</option>`).join('');
+      if (!MACHINES.some(m => m.id === appState.iqcSelectedMachine)) {
+        appState.iqcSelectedMachine = MACHINES[0].id;
+      }
+      mSel.value = appState.iqcSelectedMachine;
+
+      const paramsForMachine = appState.parameters.filter(p => p.machineId === appState.iqcSelectedMachine);
+      const pSel = document.getElementById('iqcParamSelect');
+      pSel.innerHTML = paramsForMachine.map(p => `<option value="${p.id}">${escapeHtml(p.name)} (${escapeHtml(p.unit)})</option>`).join('');
+      if (!paramsForMachine.some(p => p.id === appState.iqcSelectedParamId)) {
+        appState.iqcSelectedParamId = paramsForMachine[0] ? paramsForMachine[0].id : '';
+      }
+      pSel.value = appState.iqcSelectedParamId;
+
+      const opSel = document.getElementById('newIqcOperator');
+      if (opSel.options.length === 0) {
+        opSel.innerHTML = LAB_STAFF.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+      }
+      const dateInput = document.getElementById('newIqcDate');
+      if (!dateInput.value) {
+        dateInput.value = '2026-12-08';
+      }
+    }
+
+    function onIqcMachineChange() {
+      appState.iqcSelectedMachine = document.getElementById('iqcMachineSelect').value;
+      const firstParam = appState.parameters.find(p => p.machineId === appState.iqcSelectedMachine);
+      appState.iqcSelectedParamId = firstParam ? firstParam.id : '';
+      renderTab2();
+    }
+
+    function onIqcParamChange() {
+      appState.iqcSelectedParamId = document.getElementById('iqcParamSelect').value;
+      renderTab2();
+    }
+
+    function getCurrentIqcContext() {
+      const param = appState.parameters.find(p => p.id === appState.iqcSelectedParamId);
+      const level = document.getElementById('iqcLevelSelect').value || 'L1';
+      const basis = document.getElementById('iqcBasisSelect').value || 'TARGET';
+      if (!param) return null;
+      const lvlObj = param.iqc[level];
+      return { param, level, basis, lvlObj };
+    }
+
+    function renderTab2() {
+      populateIqcSelectors();
+      const ctx = getCurrentIqcContext();
+      if (!ctx) return;
+      const { param, level, basis, lvlObj } = ctx;
+
+      // Populate target inputs
+      document.getElementById('iqcLotInput').value = lvlObj.lot || '';
+      document.getElementById('iqcExpInput').value = lvlObj.exp || '';
+      document.getElementById('iqcTargetMeanInput').value = lvlObj.targetMean !== '' && lvlObj.targetMean !== null ? lvlObj.targetMean : '';
+      document.getElementById('iqcTargetSdInput').value = lvlObj.targetSd !== '' && lvlObj.targetSd !== null ? lvlObj.targetSd : '';
+
+      // Lock badge
+      const lockBadge = document.getElementById('iqcLockBadge');
+      if (lvlObj.locked) {
+        lockBadge.className = 'text-[11px] px-2 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200';
+        lockBadge.textContent = `✓ Đã chốt từ ${lvlObj.lockedAt || '12/12'}`;
+      } else {
+        lockBadge.className = 'text-[11px] px-2 py-0.5 rounded-full font-semibold bg-slate-100 text-slate-600 border border-slate-200';
+        lockBadge.textContent = 'Đang tích lũy (Chưa chốt)';
+      }
+
+      // Sort runs chronologically
+      const sortedRuns = [...lvlObj.runs].sort((a, b) => a.date.localeCompare(b.date));
+      const values = sortedRuns.map(r => Number(r.value));
+      const stats = computeStats(values);
+
+      // Sample count readiness badge
+      const countBadge = document.getElementById('iqcSampleCountBadge');
+      if (stats.n >= 10) {
+        countBadge.className = 'text-[11px] px-2 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-800';
+        countBadge.textContent = `N = ${stats.n} (Tối ưu ≥ 10 điểm)`;
+      } else if (stats.n >= 5) {
+        countBadge.className = 'text-[11px] px-2 py-0.5 rounded-full font-semibold bg-medical-100 text-medical-800';
+        countBadge.textContent = `N = ${stats.n} (Đạt tối thiểu 5–10 điểm)`;
+      } else {
+        countBadge.className = 'text-[11px] px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800';
+        countBadge.textContent = `N = ${stats.n} (Cần tối thiểu 5 điểm)`;
+      }
+
+      const tMean = lvlObj.targetMean !== '' && lvlObj.targetMean !== null ? Number(lvlObj.targetMean) : NaN;
+      const tSd = lvlObj.targetSd !== '' && lvlObj.targetSd !== null ? Number(lvlObj.targetSd) : NaN;
+      const tCv = (Number.isFinite(tMean) && tMean !== 0 && Number.isFinite(tSd)) ? (tSd / Math.abs(tMean)) * 100 : null;
+      const biasPct = (stats.mean !== null && Number.isFinite(tMean) && tMean !== 0)
+        ? ((stats.mean - tMean) / tMean) * 100
+        : null;
+
+      // Render Real-time Stats Grid
+      document.getElementById('iqcStatsGrid').innerHTML = `
+        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+          <div class="text-[11px] text-slate-500">Mean thực tế (X̄)</div>
+          <div class="text-sm font-bold text-slate-900 mt-0.5">${formatNum(stats.mean)} <span class="text-[10px] font-normal text-slate-500">${escapeHtml(param.unit)}</span></div>
+          <div class="text-[10px] text-slate-500 mt-0.5">Target NSX: ${Number.isFinite(tMean) ? formatNum(tMean) : '—'}</div>
+        </div>
+        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+          <div class="text-[11px] text-slate-500">Độ lệch chuẩn (SD)</div>
+          <div class="text-sm font-bold text-slate-900 mt-0.5">${stats.n < 2 ? 'Chưa đủ N≥2' : formatNum(stats.sd, 3)}</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">Target SD: ${Number.isFinite(tSd) ? formatNum(tSd, 3) : '—'}</div>
+        </div>
+        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+          <div class="text-[11px] text-slate-500">Hệ số biến thiên (CV%)</div>
+          <div class="text-sm font-bold text-medical-700 mt-0.5">${stats.cv !== null ? formatNum(stats.cv, 2) + '%' : '—'}</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">Target CV%: ${tCv !== null ? formatNum(tCv, 2) + '%' : '—'}</div>
+        </div>
+        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+          <div class="text-[11px] text-slate-500">Độ chệch (Bias % vs NSX)</div>
+          <div class="text-sm font-bold ${biasPct !== null && Math.abs(biasPct) > 5 ? 'text-amber-600' : 'text-emerald-700'} mt-0.5">${biasPct !== null ? (biasPct >= 0 ? '+' : '') + formatNum(biasPct, 2) + '%' : '—'}</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">Số điểm N = ${stats.n}</div>
+        </div>
+      `;
+
+      // Determine reference Mean & SD for chart and Westgard
+      let refMean = tMean;
+      let refSd = tSd;
+      let basisText = 'Target NSX';
+      if (basis === 'ACTUAL') {
+        basisText = 'Thực tế tích lũy';
+        if (stats.n >= 2 && stats.sd > 0) {
+          refMean = stats.mean;
+          refSd = stats.sd;
+        } else {
+          refMean = NaN;
+          refSd = NaN;
+        }
+      }
+      document.getElementById('thresholdBasisLabel').textContent = basisText;
+
+      const thrGrid = document.getElementById('iqcThresholdsGrid');
+      if (Number.isFinite(refMean) && Number.isFinite(refSd) && refSd > 0) {
+        thrGrid.innerHTML = `
+          <div class="p-1.5 rounded bg-blue-50 border border-blue-200 text-center">
+            <div class="font-bold text-blue-800">±1SD</div>
+            <div class="text-blue-700">${formatNum(refMean - refSd)} – ${formatNum(refMean + refSd)}</div>
+          </div>
+          <div class="p-1.5 rounded bg-amber-50 border border-amber-200 text-center">
+            <div class="font-bold text-amber-800">±2SD</div>
+            <div class="text-amber-700">${formatNum(refMean - 2 * refSd)} – ${formatNum(refMean + 2 * refSd)}</div>
+          </div>
+          <div class="p-1.5 rounded bg-red-50 border border-red-200 text-center">
+            <div class="font-bold text-red-800">±3SD</div>
+            <div class="text-red-700">${formatNum(refMean - 3 * refSd)} – ${formatNum(refMean + 3 * refSd)}</div>
+          </div>
+        `;
+      } else {
+        thrGrid.innerHTML = `<div class="col-span-3 text-slate-500 italic">Cần có SD &gt; 0 (hoặc N ≥ 2 khi chọn hệ quy chiếu Thực tế) để tính ngưỡng ±1SD, ±2SD, ±3SD.</div>`;
+      }
+
+      // Gather peer level z-scores by date for cross-level Westgard rules (2_2s, R_4s)
+      const otherLevelRunsByDate = {};
+      ['L1', 'L2', 'L3'].forEach(otherLvl => {
+        if (otherLvl === level) return;
+        const oObj = param.iqc[otherLvl];
+        const oVals = oObj.runs.map(r => Number(r.value));
+        const oStats = computeStats(oVals);
+        const oMean = basis === 'ACTUAL' ? oStats.mean : Number(oObj.targetMean);
+        const oSd = basis === 'ACTUAL' ? oStats.sd : Number(oObj.targetSd);
+        if (Number.isFinite(oMean) && Number.isFinite(oSd) && oSd > 0) {
+          oObj.runs.forEach(r => {
+            if (!otherLevelRunsByDate[r.date]) otherLevelRunsByDate[r.date] = [];
+            otherLevelRunsByDate[r.date].push((Number(r.value) - oMean) / oSd);
+          });
+        }
+      });
+
+      const wg = evaluateWestgard(sortedRuns, refMean, refSd, otherLevelRunsByDate);
+
+      // Render Westgard Alert Box
+      const wgBox = document.getElementById('westgardAlertBox');
+      if (!Number.isFinite(refMean) || !Number.isFinite(refSd) || refSd <= 0) {
+        wgBox.className = 'rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm text-xs text-slate-600';
+        wgBox.innerHTML = `<div class="font-bold text-slate-800">Bộ lọc Quy tắc Westgard</div><p class="mt-1">Chưa đủ tham số Mean / SD hợp lệ (&gt; 0) để kích hoạt kiểm tra Westgard tự động.</p>`;
+      } else if (wg.hasReject) {
+        const adviceList = getWestgardRemediation(wg.summaryRules);
+        wgBox.className = 'rounded-xl border border-red-300 bg-red-50 p-4 shadow-sm text-xs';
+        wgBox.innerHTML = `
+          <div class="flex items-center gap-2 font-bold text-red-800">
+            <span class="px-2 py-0.5 rounded bg-red-600 text-white text-[10px]">VI PHẠM WESTGARD - LOẠI BỎ</span>
+            <span>Quy tắc: ${wg.summaryRules.join(', ')}</span>
+          </div>
+          <div class="mt-2 space-y-1 text-red-900 leading-relaxed">${adviceList.map(a => `<div>${escapeHtml(a)}</div>`).join('')}</div>
+        `;
+      } else if (wg.hasWarning) {
+        const adviceList = getWestgardRemediation(wg.summaryRules);
+        wgBox.className = 'rounded-xl border border-amber-300 bg-amber-50 p-4 shadow-sm text-xs';
+        wgBox.innerHTML = `
+          <div class="flex items-center gap-2 font-bold text-amber-900">
+            <span class="px-2 py-0.5 rounded bg-amber-500 text-white text-[10px]">CẢNH BÁO 1₂ₛ</span>
+            <span>Có điểm vượt ngưỡng ±2SD</span>
+          </div>
+          <div class="mt-2 space-y-1 text-amber-900 leading-relaxed">${adviceList.map(a => `<div>${escapeHtml(a)}</div>`).join('')}</div>
+        `;
+      } else {
+        wgBox.className = 'rounded-xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm text-xs';
+        wgBox.innerHTML = `
+          <div class="font-bold text-emerald-800">✓ Đạt chuẩn Westgard (Không có vi phạm)</div>
+          <p class="mt-1 text-emerald-700">Tất cả ${wg.points.length} điểm chạy hiện tại đều nằm trong giới hạn kiểm soát ±2SD và không phát hiện xu hướng sai số hệ thống.</p>
+        `;
+      }
+
+      // Render Runs Table
+      const runsTbody = document.getElementById('iqcRunsTableBody');
+      if (wg.points.length === 0) {
+        runsTbody.innerHTML = `<tr><td colspan="8" class="px-3 py-6 text-center text-slate-400">Chưa có điểm chạy nội kiểm nào cho mức ${level}. Hãy nhập dữ liệu ở khung phía trên.</td></tr>`;
+      } else {
+        runsTbody.innerHTML = wg.points.map(pt => {
+          const zText = pt.z !== null ? (pt.z >= 0 ? '+' : '') + pt.z.toFixed(2) + ' SD' : '—';
+          let wgHtml = `<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold text-[10px]">Đạt (In control)</span>`;
+          if (pt.severity === 'reject') {
+            wgHtml = pt.rules.map(r => `<span class="inline-block mr-1 px-2 py-0.5 rounded bg-red-600 text-white font-bold text-[10px]">${escapeHtml(r.label)}</span>`).join('');
+          } else if (pt.severity === 'warning') {
+            wgHtml = pt.rules.map(r => `<span class="inline-block mr-1 px-2 py-0.5 rounded bg-amber-500 text-white font-bold text-[10px]">${escapeHtml(r.label)}</span>`).join('');
+          }
+          return `
+            <tr class="${pt.severity === 'reject' ? 'bg-red-50/50' : pt.severity === 'warning' ? 'bg-amber-50/50' : ''}">
+              <td class="px-3 py-2 text-center font-semibold text-slate-500">${pt.index}</td>
+              <td class="px-3 py-2 font-medium text-slate-800 whitespace-nowrap">${formatDateVN(pt.date)}</td>
+              <td class="px-3 py-2 text-right font-bold text-slate-900">
+                <input type="number" step="any" value="${pt.value}" onchange="updateIqcPointValue('${pt.id}', this.value)" class="w-20 text-right px-1.5 py-0.5 rounded border border-slate-300 bg-white font-bold text-xs" />
+              </td>
+              <td class="px-3 py-2 text-right font-mono ${pt.severity === 'reject' ? 'text-red-700 font-bold' : pt.severity === 'warning' ? 'text-amber-700 font-bold' : 'text-slate-600'}">${zText}</td>
+              <td class="px-3 py-2">${wgHtml}</td>
+              <td class="px-3 py-2 text-slate-600 whitespace-nowrap">${escapeHtml(pt.operator)}</td>
+              <td class="px-3 py-2 text-slate-500">${escapeHtml(pt.note || '')}</td>
+              <td class="px-3 py-2 text-center">
+                <button onclick="deleteIqcPoint('${pt.id}')" class="text-red-600 hover:text-red-800 font-semibold">Xóa</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // Render Chart.js Levey-Jennings
+      renderLeveyJenningsChart(param, level, wg.points, refMean, refSd, basisText);
+    }
+
+    function renderLeveyJenningsChart(param, level, points, refMean, refSd, basisText) {
+      document.getElementById('ljChartTitle').textContent = `Biểu đồ Levey-Jennings: ${param.name} (${param.unit}) – ${getMachineName(param.machineId)} [${level}]`;
+      document.getElementById('ljChartSubtitle').textContent = Number.isFinite(refMean) && refSd > 0
+        ? `Hệ quy chiếu: ${basisText} | Mean = ${formatNum(refMean)} | SD = ${formatNum(refSd, 3)} | Số điểm N = ${points.length}`
+        : `Chưa có Mean/SD hợp lệ để vẽ đường giới hạn chuẩn (±1SD, ±2SD, ±3SD).`;
+
+      if (typeof Chart === 'undefined') return;
+      const canvas = document.getElementById('leveyJenningsCanvas');
+      if (!canvas) return;
+      if (ljChartInstance) ljChartInstance.destroy();
+
+      const labels = points.length > 0 ? points.map(p => formatDateVN(p.date)) : ['Chưa có dữ liệu'];
+      const dataValues = points.map(p => Number(p.value));
+      const pointColors = points.map(p =>
+        p.severity === 'reject' ? '#dc2626' : p.severity === 'warning' ? '#eab308' : '#0284c7'
+      );
+      const pointRadii = points.map(p => (p.severity === 'reject' ? 7 : p.severity === 'warning' ? 6 : 5));
+
+      const datasets = [
+        {
+          label: `Giá trị IQC (${level})`,
+          data: dataValues,
+          borderColor: '#0284c7',
+          backgroundColor: pointColors,
+          pointBackgroundColor: pointColors,
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 1.5,
+          pointRadius: pointRadii,
+          pointHoverRadius: 8,
+          borderWidth: 2,
+          tension: 0.15,
+          fill: false
+        }
+      ];
+
+      let yMin, yMax;
+      if (Number.isFinite(refMean) && Number.isFinite(refSd) && refSd > 0) {
+        const makeLine = (label, val, color, dash = []) => ({
+          label,
+          data: labels.map(() => val),
+          borderColor: color,
+          borderWidth: dash.length ? 1.5 : 2,
+          borderDash: dash,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false
+        });
+        datasets.push(
+          makeLine('Mean', refMean, '#16a34a'),
+          makeLine('+1SD', refMean + refSd, '#2563eb', [6, 4]),
+          makeLine('-1SD', refMean - refSd, '#2563eb', [6, 4]),
+          makeLine('+2SD', refMean + 2 * refSd, '#f59e0b', [4, 2]),
+          makeLine('-2SD', refMean - 2 * refSd, '#f59e0b', [4, 2]),
+          makeLine('+3SD', refMean + 3 * refSd, '#dc2626'),
+          makeLine('-3SD', refMean - 3 * refSd, '#dc2626')
+        );
+        const allVals = [...dataValues, refMean + 3.4 * refSd, refMean - 3.4 * refSd];
+        yMin = Math.min(...allVals);
+        yMax = Math.max(...allVals);
+      }
+
+      ljChartInstance = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  if (ctx.datasetIndex !== 0) return null;
+                  const pt = points[ctx.dataIndex];
+                  if (!pt) return '';
+                  const zStr = pt.z !== null ? ` (Z = ${pt.z >= 0 ? '+' : ''}${pt.z.toFixed(2)} SD)` : '';
+                  const ruleStr = pt.rules.length ? ` | ${pt.rules.map(r => r.code).join(', ')}` : ' | Đạt';
+                  return `Kết quả: ${pt.value} ${param.unit}${zStr}${ruleStr}`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              min: yMin,
+              max: yMax,
+              grid: { color: '#f1f5f9' },
+              ticks: { font: { size: 11 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    function saveIqcTarget() {
+      const ctx = getCurrentIqcContext();
+      if (!ctx) return;
+      ctx.lvlObj.lot = document.getElementById('iqcLotInput').value.trim();
+      ctx.lvlObj.exp = document.getElementById('iqcExpInput').value;
+      const m = document.getElementById('iqcTargetMeanInput').value;
+      const s = document.getElementById('iqcTargetSdInput').value;
+      ctx.lvlObj.targetMean = m === '' ? '' : Number(m);
+      ctx.lvlObj.targetSd = s === '' ? '' : Number(s);
+      saveState();
+      renderTab2();
+    }
+
+    function addIqcPoint(e) {
+      e.preventDefault();
+      const ctx = getCurrentIqcContext();
+      if (!ctx) return;
+      const date = document.getElementById('newIqcDate').value;
+      const val = Number(document.getElementById('newIqcValue').value);
+      const operator = document.getElementById('newIqcOperator').value;
+      const note = document.getElementById('newIqcNote').value.trim();
+      if (!date || !Number.isFinite(val)) return;
+
+      ctx.lvlObj.runs.push({
+        id: 'RUN_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        date,
+        value: val,
+        operator,
+        note
+      });
+      document.getElementById('newIqcValue').value = '';
+      document.getElementById('newIqcNote').value = '';
+      saveState();
+      renderTab2();
+      showToast('Đã thêm điểm nội kiểm mới.', 'success');
+    }
+
+    function updateIqcPointValue(runId, newVal) {
+      const ctx = getCurrentIqcContext();
+      if (!ctx) return;
+      const num = Number(newVal);
+      if (!Number.isFinite(num)) return;
+      const r = ctx.lvlObj.runs.find(x => x.id === runId);
+      if (r) {
+        r.value = num;
+        saveState();
+        renderTab2();
+      }
+    }
+
+    function deleteIqcPoint(runId) {
+      const ctx = getCurrentIqcContext();
+      if (!ctx) return;
+      ctx.lvlObj.runs = ctx.lvlObj.runs.filter(x => x.id !== runId);
+      saveState();
+      renderTab2();
+      showToast('Đã xóa điểm nội kiểm.', 'info');
+    }
+
+    function lockIQCBaseline() {
+      const ctx = getCurrentIqcContext();
+      if (!ctx) return;
+      const { param, level, lvlObj } = ctx;
+      const values = lvlObj.runs.map(r => Number(r.value));
+      const stats = computeStats(values);
+      if (stats.n < 5) {
+        showToast(`Chưa đủ tối thiểu 5 ngày/điểm chạy (hiện có N = ${stats.n}). Vui lòng tích lũy đủ 5–10 điểm trước khi chốt!`, 'warning');
+        return;
+      }
+      if (stats.n < 10) {
+        if (!confirm(`Hiện có N = ${stats.n} điểm (đạt tối thiểu ≥ 5, khuyến nghị 10 điểm). Bạn có muốn chốt bộ Mean/SD thực tế áp dụng từ 12/12/2026 cho ${param.name} [${level}]?`)) return;
+      }
+      const now = new Date();
+      const stamp = `${now.toISOString().slice(0, 10)} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      lvlObj.locked = true;
+      lvlObj.lockedAt = stamp;
+      lvlObj.lockedBy = 'CN. Nguyễn Trường Duy';
+      lvlObj.lockedMean = stats.mean;
+      lvlObj.lockedSd = stats.sd;
+      lvlObj.lockedCv = stats.cv;
+      saveState();
+      renderTab2();
+      showToast(`Đã chốt bộ Mean/SD thực tế (${formatNum(stats.mean)} ± ${formatNum(stats.sd, 3)}) áp dụng từ 12/12/2026!`, 'success');
+    }
+
+    // =========================================================================
+    // 7. TAB 3: EQA & SOFTWARE ACCOUNTS
+    // =========================================================================
+    function renderTab3() {
+      const tbody = document.getElementById('tab3TableBody');
+      tbody.innerHTML = appState.eqaPrograms.map(eqa => {
+        const dLeft = daysUntil(eqa.deadline);
+        let countdownBadge = '';
+        if (eqa.sampleStatus === 'Đã gửi KQ') {
+          countdownBadge = `<span class="inline-block px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold text-[10px]">Đã hoàn thành</span>`;
+        } else if (dLeft !== null) {
+          if (dLeft < 0) {
+            countdownBadge = `<span class="inline-block px-2 py-0.5 rounded bg-red-600 text-white font-bold text-[10px]">Quá hạn ${Math.abs(dLeft)} ngày</span>`;
+          } else if (dLeft <= 3) {
+            countdownBadge = `<span class="inline-block px-2 py-0.5 rounded bg-red-100 text-red-800 font-bold text-[10px]">Còn ${dLeft} ngày</span>`;
+          } else if (dLeft <= 7) {
+            countdownBadge = `<span class="inline-block px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">Còn ${dLeft} ngày</span>`;
+          } else {
+            countdownBadge = `<span class="inline-block px-2 py-0.5 rounded bg-medical-100 text-medical-800 font-semibold text-[10px]">Còn ${dLeft} ngày</span>`;
+          }
+        }
+
+        const accBadge = eqa.accountStatus === 'Hoạt động'
+          ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+          : 'bg-red-100 text-red-800 border-red-200';
+
+        const sampleBadge = eqa.sampleStatus === 'Đã gửi KQ'
+          ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+          : eqa.sampleStatus === 'Đã chạy'
+            ? 'bg-blue-100 text-blue-800 border-blue-200'
+            : eqa.sampleStatus === 'Đã nhận'
+              ? 'bg-amber-100 text-amber-800 border-amber-200'
+              : 'bg-slate-100 text-slate-700 border-slate-200';
+
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="px-3 py-3 font-bold text-medical-800 whitespace-nowrap">${escapeHtml(eqa.group)}</td>
+            <td class="px-3 py-3">
+              <div class="font-semibold text-slate-900">${escapeHtml(eqa.program)}</div>
+              <div class="text-[11px] text-slate-500">${escapeHtml(eqa.provider)}</div>
+            </td>
+            <td class="px-3 py-3 text-center font-mono font-bold text-slate-800 whitespace-nowrap">${escapeHtml(eqa.labCode)}</td>
+            <td class="px-3 py-3 whitespace-nowrap">
+              <a href="${escapeHtml(eqa.portalUrl)}" target="_blank" rel="noopener noreferrer" class="text-medical-600 hover:underline font-semibold inline-flex items-center gap-1">
+                ${escapeHtml(eqa.portalUrl)}
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </td>
+            <td class="px-3 py-3 max-w-[230px]">
+              <div class="font-mono text-[11px] font-bold text-slate-800">User: ${escapeHtml(eqa.username || '—')}</div>
+              <div class="text-[11px] text-slate-500 mt-0.5">${escapeHtml(eqa.securityNote || '')}</div>
+            </td>
+            <td class="px-3 py-3 text-center whitespace-nowrap">
+              <select onchange="quickUpdateEqa('${eqa.id}', 'accountStatus', this.value)" class="px-2 py-1 rounded border text-[11px] font-semibold ${accBadge}">
+                <option value="Hoạt động" ${eqa.accountStatus === 'Hoạt động' ? 'selected' : ''}>Hoạt động</option>
+                <option value="Cần reset mật khẩu" ${eqa.accountStatus === 'Cần reset mật khẩu' ? 'selected' : ''}>Cần reset mật khẩu</option>
+              </select>
+            </td>
+            <td class="px-3 py-3 text-center text-slate-700 whitespace-nowrap">${formatDateVN(eqa.receiveDate)}</td>
+            <td class="px-3 py-3 text-center whitespace-nowrap">
+              <div class="font-semibold text-slate-800">${formatDateVN(eqa.deadline)}</div>
+              <div class="mt-0.5">${countdownBadge}</div>
+            </td>
+            <td class="px-3 py-3 text-center whitespace-nowrap">
+              <select onchange="quickUpdateEqa('${eqa.id}', 'sampleStatus', this.value)" class="px-2 py-1 rounded border text-[11px] font-semibold ${sampleBadge}">
+                <option value="Chưa nhận" ${eqa.sampleStatus === 'Chưa nhận' ? 'selected' : ''}>Chưa nhận</option>
+                <option value="Đã nhận" ${eqa.sampleStatus === 'Đã nhận' ? 'selected' : ''}>Đã nhận</option>
+                <option value="Đã chạy" ${eqa.sampleStatus === 'Đã chạy' ? 'selected' : ''}>Đã chạy</option>
+                <option value="Đã gửi KQ" ${eqa.sampleStatus === 'Đã gửi KQ' ? 'selected' : ''}>Đã gửi KQ</option>
+              </select>
+            </td>
+            <td class="px-3 py-3 text-center whitespace-nowrap">
+              <button onclick="openEqaModal('${eqa.id}')" class="px-2.5 py-1 rounded bg-medical-50 text-medical-700 hover:bg-medical-100 font-semibold text-[11px]">Sửa</button>
+              <button onclick="deleteEqa('${eqa.id}')" class="px-2.5 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 font-semibold text-[11px] ml-1">Xóa</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function quickUpdateEqa(id, field, val) {
+      const item = appState.eqaPrograms.find(x => x.id === id);
+      if (!item) return;
+      item[field] = val;
+      saveState();
+      renderTab3();
+    }
+
+    function openEqaModal(id = null) {
+      if (id) {
+        const eqa = appState.eqaPrograms.find(x => x.id === id);
+        if (!eqa) return;
+        document.getElementById('eqaModalTitle').textContent = `Cập nhật Chương trình EQA: ${eqa.group}`;
+        document.getElementById('editEqaId').value = eqa.id;
+        document.getElementById('eqaGroup').value = eqa.group;
+        document.getElementById('eqaLabCode').value = eqa.labCode;
+        document.getElementById('eqaProgram').value = eqa.program;
+        document.getElementById('eqaProvider').value = eqa.provider;
+        document.getElementById('eqaPortalUrl').value = eqa.portalUrl;
+        document.getElementById('eqaUsername').value = eqa.username || '';
+        document.getElementById('eqaAccountStatus').value = eqa.accountStatus;
+        document.getElementById('eqaSecurityNote').value = eqa.securityNote || '';
+        document.getElementById('eqaReceiveDate').value = eqa.receiveDate || '';
+        document.getElementById('eqaDeadline').value = eqa.deadline || '';
+        document.getElementById('eqaSampleStatus').value = eqa.sampleStatus;
+      } else {
+        document.getElementById('eqaModalTitle').textContent = 'Thêm Chương trình Ngoại kiểm (EQA)';
+        document.getElementById('editEqaId').value = '';
+        document.getElementById('eqaGroup').value = '';
+        document.getElementById('eqaLabCode').value = 'PXN-TAVD-';
+        document.getElementById('eqaProgram').value = '';
+        document.getElementById('eqaProvider').value = 'TT Kiểm chuẩn CL XN Y học – ĐHYD TP.HCM';
+        document.getElementById('eqaPortalUrl').value = 'https://eqa.csql.vn';
+        document.getElementById('eqaUsername').value = '';
+        document.getElementById('eqaAccountStatus').value = 'Hoạt động';
+        document.getElementById('eqaSecurityNote').value = '';
+        document.getElementById('eqaReceiveDate').value = '2026-12-03';
+        document.getElementById('eqaDeadline').value = '2026-12-11';
+        document.getElementById('eqaSampleStatus').value = 'Chưa nhận';
+      }
+      openModal('eqaModal');
+    }
+
+    function saveEqaForm(e) {
+      e.preventDefault();
+      const editId = document.getElementById('editEqaId').value;
+      const payload = {
+        group: document.getElementById('eqaGroup').value.trim(),
+        labCode: document.getElementById('eqaLabCode').value.trim(),
+        program: document.getElementById('eqaProgram').value.trim(),
+        provider: document.getElementById('eqaProvider').value.trim(),
+        portalUrl: document.getElementById('eqaPortalUrl').value.trim(),
+        username: document.getElementById('eqaUsername').value.trim(),
+        accountStatus: document.getElementById('eqaAccountStatus').value,
+        securityNote: document.getElementById('eqaSecurityNote').value.trim(),
+        receiveDate: document.getElementById('eqaReceiveDate').value,
+        deadline: document.getElementById('eqaDeadline').value,
+        sampleStatus: document.getElementById('eqaSampleStatus').value
+      };
+
+      if (editId) {
+        const idx = appState.eqaPrograms.findIndex(x => x.id === editId);
+        if (idx !== -1) appState.eqaPrograms[idx] = { ...appState.eqaPrograms[idx], ...payload };
+        showToast('Đã cập nhật chương trình EQA.', 'success');
+      } else {
+        appState.eqaPrograms.push({ id: 'EQA_' + Date.now(), machineId: '', ...payload });
+        showToast('Đã thêm chương trình EQA mới.', 'success');
+      }
+      saveState();
+      closeModal('eqaModal');
+      renderTab3();
+    }
+
+    function deleteEqa(id) {
+      if (!confirm('Xác nhận xóa chương trình ngoại kiểm này?')) return;
+      appState.eqaPrograms = appState.eqaPrograms.filter(x => x.id !== id);
+      saveState();
+      renderTab3();
+      showToast('Đã xóa chương trình EQA.', 'info');
+    }
+
+    function runEqaQuickCheck() {
+      const panel = document.getElementById('eqaReminderPanel');
+      const issues = [];
+      appState.eqaPrograms.forEach(eqa => {
+        if (eqa.accountStatus !== 'Hoạt động') {
+          issues.push(`<li><strong>[Tài khoản]</strong> ${escapeHtml(eqa.group)}: Cần liên hệ đơn vị tổ chức để <strong>reset mật khẩu</strong> trước khi nhận mẫu (${escapeHtml(eqa.portalUrl)}).</li>`);
+        }
+        const dLeft = daysUntil(eqa.deadline);
+        if (eqa.sampleStatus !== 'Đã gửi KQ' && dLeft !== null && dLeft <= 14) {
+          issues.push(`<li><strong>[Hạn trả KQ]</strong> ${escapeHtml(eqa.group)}: Hạn chót ${formatDateVN(eqa.deadline)} (còn ${dLeft} ngày) – Trạng thái hiện tại: <em>${escapeHtml(eqa.sampleStatus)}</em>.</li>`);
+        }
+      });
+
+      panel.classList.remove('hidden');
+      if (issues.length === 0) {
+        panel.className = 'mt-3 p-3.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-900 text-xs';
+        panel.innerHTML = `<strong>✓ Kiểm tra nhanh hoàn tất:</strong> Toàn bộ tài khoản EQA đang hoạt động ổn định và không có mẫu ngoại kiểm trễ hạn.`;
+      } else {
+        panel.className = 'mt-3 p-3.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-900 text-xs';
+        panel.innerHTML = `
+          <div class="font-bold mb-1">⚠ Phát hiện ${issues.length} đầu việc Ngoại kiểm (EQA) cần xử lý / nhắc việc:</div>
+          <ul class="list-disc pl-5 space-y-1">${issues.join('')}</ul>
+        `;
+      }
+    }
+
+    // =========================================================================
+    // 8. TAB 4: DASHBOARD & EXPORTS
+    // =========================================================================
+    function computeDeviceReadiness() {
+      return MACHINES.map(m => {
+        const params = appState.parameters.filter(p => p.machineId === m.id);
+        const total = params.length;
+        const calibDone = params.filter(p => p.calibStatus === 'Đạt' && p.linearityStatus === 'Đạt 5 điểm').length;
+        const calibPct = total > 0 ? Math.round((calibDone / total) * 100) : 0;
+
+        // IQC readiness: at least L1 has >= 5 runs (or locked)
+        const iqcReady = params.filter(p => (p.iqc.L1.runs.length >= 5 || p.iqc.L1.locked)).length;
+        const iqcLocked = params.filter(p => p.iqc.L1.locked).length;
+        const iqcPct = total > 0 ? Math.round((iqcReady / total) * 100) : 0;
+
+        // EQA readiness
+        const eqas = appState.eqaPrograms.filter(e => e.machineId === m.id || e.group.includes(m.name));
+        let eqaPct = 0;
+        if (eqas.length > 0) {
+          const score = eqas.reduce((acc, e) => {
+            let s = e.accountStatus === 'Hoạt động' ? 50 : 0;
+            if (e.sampleStatus === 'Đã gửi KQ') s += 50;
+            else if (e.sampleStatus === 'Đã chạy') s += 40;
+            else if (e.sampleStatus === 'Đã nhận') s += 25;
+            return acc + s;
+          }, 0);
+          eqaPct = Math.round(score / eqas.length);
+        }
+
+        const overallPct = Math.round((calibPct * 0.4) + (iqcPct * 0.4) + (eqaPct * 0.2));
+        return { ...m, total, calibDone, calibPct, iqcReady, iqcLocked, iqcPct, eqaPct, overallPct };
+      });
+    }
+
+    function renderTab4() {
+      const stats = computeDeviceReadiness();
+      const totalParams = appState.parameters.length;
+      const totalCalibDone = stats.reduce((a, b) => a + b.calibDone, 0);
+      const totalIqcReady = stats.reduce((a, b) => a + b.iqcReady, 0);
+      const totalIqcLocked = stats.reduce((a, b) => a + b.iqcLocked, 0);
+      const avgOverall = Math.round(stats.reduce((a, b) => a + b.overallPct, 0) / stats.length);
+      const eqaActive = appState.eqaPrograms.filter(e => e.accountStatus === 'Hoạt động').length;
+
+      document.getElementById('dashboardGlobalKpis').innerHTML = `
+        <div class="bg-white/10 backdrop-blur rounded-lg p-3 border border-white/15">
+          <div class="text-[11px] text-medical-100">Mức độ sẵn sàng tổng thể</div>
+          <div class="text-2xl font-bold mt-0.5">${avgOverall}%</div>
+          <div class="text-[11px] text-medical-200 mt-0.5">Toàn bộ 06 máy xét nghiệm</div>
+        </div>
+        <div class="bg-white/10 backdrop-blur rounded-lg p-3 border border-white/15">
+          <div class="text-[11px] text-medical-100">Hiệu chuẩn &amp; Linearity</div>
+          <div class="text-2xl font-bold mt-0.5">${totalParams > 0 ? Math.round((totalCalibDone / totalParams) * 100) : 0}%</div>
+          <div class="text-[11px] text-medical-200 mt-0.5">${totalCalibDone}/${totalParams} thông số đạt</div>
+        </div>
+        <div class="bg-white/10 backdrop-blur rounded-lg p-3 border border-white/15">
+          <div class="text-[11px] text-medical-100">Nội kiểm tích lũy (N≥5)</div>
+          <div class="text-2xl font-bold mt-0.5">${totalParams > 0 ? Math.round((totalIqcReady / totalParams) * 100) : 0}%</div>
+          <div class="text-[11px] text-medical-200 mt-0.5">${totalIqcReady}/${totalParams} đủ điểm (${totalIqcLocked} đã chốt)</div>
+        </div>
+        <div class="bg-white/10 backdrop-blur rounded-lg p-3 border border-white/15">
+          <div class="text-[11px] text-medical-100">Ngoại kiểm EQA &amp; Tài khoản</div>
+          <div class="text-2xl font-bold mt-0.5">${eqaActive}/${appState.eqaPrograms.length}</div>
+          <div class="text-[11px] text-medical-200 mt-0.5">Tài khoản đang hoạt động</div>
+        </div>
+      `;
+
+      document.getElementById('deviceReadinessGrid').innerHTML = stats.map(s => `
+        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-bold text-slate-900 text-xs">${escapeHtml(s.name)}</div>
+              <div class="text-[11px] text-slate-500">${escapeHtml(s.group)} • ${s.total} thông số</div>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-xs font-bold ${s.overallPct >= 80 ? 'bg-emerald-100 text-emerald-800' : s.overallPct >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}">${s.overallPct}%</span>
+          </div>
+          <div class="space-y-1.5 text-[11px]">
+            <div>
+              <div class="flex justify-between mb-0.5"><span>Calib &amp; Linearity</span><span class="font-semibold">${s.calibDone}/${s.total} (${s.calibPct}%)</span></div>
+              <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full bg-medical-600" style="width:${s.calibPct}%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between mb-0.5"><span>IQC tích lũy ≥ 5 ngày</span><span class="font-semibold">${s.iqcReady}/${s.total} (${s.iqcPct}%)</span></div>
+              <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full bg-emerald-600" style="width:${s.iqcPct}%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between mb-0.5"><span>Ngoại kiểm EQA</span><span class="font-semibold">${s.eqaPct}%</span></div>
+              <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full bg-amber-500" style="width:${s.eqaPct}%"></div></div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      if (typeof Chart !== 'undefined') {
+        const canvas = document.getElementById('readinessBarChart');
+        if (readinessChartInstance) readinessChartInstance.destroy();
+        readinessChartInstance = new Chart(canvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: stats.map(s => s.shortName),
+            datasets: [
+              { label: 'Calib & Linearity (%)', data: stats.map(s => s.calibPct), backgroundColor: '#0284c7', borderRadius: 4 },
+              { label: 'IQC ≥ 5 ngày (%)', data: stats.map(s => s.iqcPct), backgroundColor: '#16a34a', borderRadius: 4 },
+              { label: 'EQA Sẵn sàng (%)', data: stats.map(s => s.eqaPct), backgroundColor: '#f59e0b', borderRadius: 4 }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%', font: { size: 11 } } },
+              x: { ticks: { font: { size: 10 } } }
+            },
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+            }
+          }
+        });
+      }
+    }
+
+    // =========================================================================
+    // 9. JSON BACKUP / RESTORE & EXCEL EXPORT (SheetJS)
+    // =========================================================================
+    function exportBackupJSON() {
+      const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `QA_QC_ThienAn_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Đã xuất tệp sao lưu .JSON thành công.', 'success');
+    }
+
+    function importBackupJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const parsed = JSON.parse(ev.target.result);
+          if (!parsed || !Array.isArray(parsed.parameters) || !Array.isArray(parsed.eqaPrograms)) {
+            throw new Error('Cấu trúc tệp JSON không hợp lệ.');
+          }
+          appState = { ...appState, ...parsed };
+          saveState();
+          renderAll();
+          showToast('Đã nhập và đồng bộ dữ liệu từ tệp .JSON thành công!', 'success');
+        } catch (err) {
+          showToast('Lỗi đọc tệp JSON: ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function exportExcelWorkbook() {
+      if (typeof XLSX === 'undefined') {
+        showToast('Thư viện SheetJS (XLSX) chưa tải được (cần kết nối mạng lần đầu). Vui lòng dùng tính năng In / Lưu PDF A4 hoặc thử lại khi có mạng.', 'error');
+        return;
+      }
+
+      const wb = XLSX.utils.book_new();
+      const todayVN = formatDateVN(new Date().toISOString().slice(0, 10));
+
+      // Sheet 1: Dashboard Summary
+      const devStats = computeDeviceReadiness();
+      const ws1Data = [
+        ['BỆNH VIỆN ĐA KHOA THIÊN ÂN - VIỄN ĐÔNG'],
+        ['KHOA XÉT NGHIỆM'],
+        ['BÁO CÁO TỔNG HỢP SẴN SÀNG QA/QC TRƯỚC NGÀY 12/12/2026 (QĐ 2429/QĐ-BYT)'],
+        [`Ngày xuất báo cáo: ${todayVN}`],
+        [],
+        ['STT', 'Thiết bị xét nghiệm', 'Nhóm xét nghiệm', 'Tổng thông số', 'Calib & Linearity đạt', 'Tỷ lệ Calib (%)', 'IQC đủ ≥5 ngày', 'IQC đã chốt Mean/SD', 'Tỷ lệ IQC (%)', 'EQA sẵn sàng (%)', 'Sẵn sàng chung (%)'],
+        ...devStats.map((s, i) => [
+          i + 1, s.name, s.group, s.total, s.calibDone, s.calibPct, s.iqcReady, s.iqcLocked, s.iqcPct, s.eqaPct, s.overallPct
+        ]),
+        [],
+        ['', 'NGƯỜI LẬP BIỂU / KTV TRƯỞNG', '', '', '', '', 'TRƯỞNG KHOA XÉT NGHIỆM'],
+        ['', 'CN. Nguyễn Trường Duy', '', '', '', '', 'CN. Lê Đình Tú']
+      ];
+      const ws1 = XLSX.utils.aoa_to_sheet(ws1Data);
+      XLSX.utils.book_append_sheet(wb, ws1, 'Tong_Hop_San_Sang');
+
+      // Sheet 2: Calib & Reference Ranges
+      const ws2Data = [
+        ['BỆNH VIỆN ĐA KHOA THIÊN ÂN - VIỄN ĐÔNG - KHOA XÉT NGHIỆM'],
+        ['BẢNG THEO DÕI DẢI THAM CHIẾU, SỐ LÔ HÓA CHẤT & HIỆU CHUẨN (CALIB / LINEARITY)'],
+        [],
+        ['STT', 'Máy XN', 'Tên xét nghiệm', 'Đơn vị', 'Dải tham chiếu cũ', 'Dải tham chiếu mới (2026)', 'Số lô cũ', 'Số lô mới', 'Hạn dùng', 'Cảnh báo đổi lô', 'Trạng thái Calib', 'Factor/Slope', 'Độ tuyến tính', 'Ngày thực hiện', 'Người thực hiện'],
+        ...appState.parameters.map((p, i) => [
+          i + 1,
+          getMachineName(p.machineId),
+          p.name,
+          p.unit,
+          p.oldRef,
+          p.newRef,
+          p.oldLot,
+          p.newLot,
+          formatDateVN(p.exp),
+          isLotChanged(p) ? 'BẮT BUỘC CHẠY LẠI CALIB & KIỂM TRA ĐỘ TUYẾN TÍNH' : 'Không đổi lô',
+          p.calibStatus,
+          p.factor,
+          p.linearityStatus,
+          formatDateVN(p.date),
+          p.operator
+        ]),
+        [],
+        ['', 'NGƯỜI LẬP BIỂU / KTV TRƯỞNG: CN. Nguyễn Trường Duy', '', '', '', '', 'TRƯỞNG KHOA XÉT NGHIỆM: CN. Lê Đình Tú']
+      ];
+      const ws2 = XLSX.utils.aoa_to_sheet(ws2Data);
+      XLSX.utils.book_append_sheet(wb, ws2, 'Calib_Dai_Tham_Chieu');
+
+      // Sheet 3: IQC Summary
+      const iqcRows = [];
+      appState.parameters.forEach(p => {
+        ['L1', 'L2', 'L3'].forEach(lvl => {
+          const obj = p.iqc[lvl];
+          if (obj.runs.length === 0 && !obj.targetMean) return;
+          const stats = computeStats(obj.runs.map(r => Number(r.value)));
+          iqcRows.push([
+            getMachineName(p.machineId),
+            p.name,
+            p.unit,
+            lvl,
+            obj.lot,
+            obj.targetMean !== '' ? obj.targetMean : '',
+            obj.targetSd !== '' ? obj.targetSd : '',
+            stats.n,
+            stats.mean !== null ? Number(stats.mean.toFixed(3)) : '',
+            stats.sd !== null ? Number(stats.sd.toFixed(3)) : '',
+            stats.cv !== null ? Number(stats.cv.toFixed(2)) : '',
+            obj.locked ? `Đã chốt (${obj.lockedAt})` : 'Chưa chốt'
+          ]);
+        });
+      });
+      const ws3Data = [
+        ['BỆNH VIỆN ĐA KHOA THIÊN ÂN - VIỄN ĐÔNG - KHOA XÉT NGHIỆM'],
+        ['TỔNG HỢP NỘI KIỂM TÍCH LŨY (IQC) & THIẾT LẬP MEAN/SD TỪ 12/12/2026'],
+        [],
+        ['Máy XN', 'Tên xét nghiệm', 'Đơn vị', 'Mức QC', 'Số lô QC', 'Target Mean', 'Target SD', 'Số điểm (N)', 'Mean thực tế', 'SD thực tế', 'CV% thực tế', 'Trạng thái chốt 12/12'],
+        ...iqcRows
+      ];
+      const ws3 = XLSX.utils.aoa_to_sheet(ws3Data);
+      XLSX.utils.book_append_sheet(wb, ws3, 'Noi_Kiem_IQC');
+
+      // Sheet 4: EQA
+      const ws4Data = [
+        ['BỆNH VIỆN ĐA KHOA THIÊN ÂN - VIỄN ĐÔNG - KHOA XÉT NGHIỆM'],
+        ['THEO DÕI CHƯƠNG TRÌNH NGOẠI KIỂM (EQA) & TÀI KHOẢN'],
+        [],
+        ['Nhóm / Máy XN', 'Chương trình EQA', 'Đơn vị tổ chức', 'Mã Phòng XN', 'Link phần mềm', 'Tên đăng nhập', 'Trạng thái tài khoản', 'Lịch nhận mẫu', 'Hạn chót trả KQ', 'Tình trạng mẫu'],
+        ...appState.eqaPrograms.map(e => [
+          e.group, e.program, e.provider, e.labCode, e.portalUrl, e.username, e.accountStatus, formatDateVN(e.receiveDate), formatDateVN(e.deadline), e.sampleStatus
+        ])
+      ];
+      const ws4 = XLSX.utils.aoa_to_sheet(ws4Data);
+      XLSX.utils.book_append_sheet(wb, ws4, 'Ngoai_Kiem_EQA');
+
+      XLSX.writeFile(wb, `Ho_So_QA_QC_ThienAn_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      showToast('Đã xuất hồ sơ Excel (.xlsx) chuẩn BVĐK Thiên Ân - Viễn Đông.', 'success');
+    }
+
+    // =========================================================================
+    // 10. A4 PRINT TEMPLATES (QĐ 2429 & NĐ 30/2020/NĐ-CP)
+    // =========================================================================
+    function buildPrintHeader(title, subtitle = '') {
+      const todayVN = formatDateVN(new Date().toISOString().slice(0, 10));
+      return `
+        <table class="no-border" style="margin-bottom: 10px;">
+          <tr>
+            <td style="width: 48%; text-align: center; vertical-align: top;">
+              <div style="font-size: 12px; font-weight: bold;">BỆNH VIỆN ĐA KHOA THIÊN ÂN - VIỄN ĐÔNG</div>
+              <div style="font-size: 13px; font-weight: bold; text-decoration: underline;">KHOA XÉT NGHIỆM</div>
+            </td>
+            <td style="width: 52%; text-align: center; vertical-align: top;">
+              <div style="font-size: 12px; font-weight: bold;">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+              <div style="font-size: 12px; font-weight: bold; text-decoration: underline;">Độc lập - Tự do - Hạnh phúc</div>
+              <div style="font-size: 11px; font-style: italic; margin-top: 3px;">Ngày xuất biểu mẫu: ${todayVN}</div>
+            </td>
+          </tr>
+        </table>
+        <div style="text-align: center; margin: 12px 0 10px 0;">
+          <div style="font-size: 15px; font-weight: bold; text-transform: uppercase;">${escapeHtml(title)}</div>
+          ${subtitle ? `<div style="font-size: 12px; font-style: italic; margin-top: 3px;">${escapeHtml(subtitle)}</div>` : ''}
+        </div>
+      `;
+    }
+
+    function buildSignatureBlock() {
+      return `
+        <table class="no-border" style="margin-top: 20px; page-break-inside: avoid;">
+          <tr>
+            <td style="width: 50%; text-align: center; vertical-align: top;">
+              <div style="font-size: 12px; font-weight: bold;">NGƯỜI LẬP BIỂU / KTV TRƯỞNG</div>
+              <div style="font-size: 11px; font-style: italic;">(Ký và ghi rõ họ tên)</div>
+              <div style="height: 55px;"></div>
+              <div style="font-size: 12px; font-weight: bold;">CN. Nguyễn Trường Duy</div>
+            </td>
+            <td style="width: 50%; text-align: center; vertical-align: top;">
+              <div style="font-size: 12px; font-weight: bold;">TRƯỞNG KHOA XÉT NGHIỆM</div>
+              <div style="font-size: 11px; font-style: italic;">(Ký và ghi rõ họ tên)</div>
+              <div style="height: 55px;"></div>
+              <div style="font-size: 12px; font-weight: bold;">CN. Lê Đình Tú</div>
+            </td>
+          </tr>
+        </table>
+      `;
+    }
+
+    function printCalibReport() {
+      const mFilter = appState.tab1MachineFilter;
+      const list = mFilter === 'ALL' ? appState.parameters : appState.parameters.filter(p => p.machineId === mFilter);
+      const scopeLabel = mFilter === 'ALL' ? 'Toàn bộ 06 máy xét nghiệm tại Khoa' : `Thiết bị: ${getMachineName(mFilter)}`;
+
+      const rowsHtml = list.map((p, i) => `
+        <tr>
+          <td style="text-align:center;">${i + 1}</td>
+          <td>${escapeHtml(getMachineName(p.machineId))}</td>
+          <td><strong>${escapeHtml(p.name)}</strong></td>
+          <td style="text-align:center;">${escapeHtml(p.unit)}</td>
+          <td>${escapeHtml(p.oldRef)}</td>
+          <td><strong>${escapeHtml(p.newRef)}</strong></td>
+          <td>${escapeHtml(p.oldLot)} → <strong>${escapeHtml(p.newLot)}</strong>${isLotChanged(p) ? '<br/><span style="color:#b91c1c;font-weight:bold;font-size:10px;">(Đổi lô - Bắt buộc Calib)</span>' : ''}</td>
+          <td style="text-align:center;">${escapeHtml(p.calibStatus)}</td>
+          <td style="text-align:center;">${escapeHtml(p.factor || '—')}</td>
+          <td style="text-align:center;">${escapeHtml(p.linearityStatus)}</td>
+          <td>${formatDateVN(p.date)}<br/>${escapeHtml(p.operator || '—')}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('printContentBody').innerHTML = `
+        ${buildPrintHeader('PHIẾU XÁC NHẬN HIỆU CHUẨN (CALIB), ĐỘ TUYẾN TÍNH & DẢI THAM CHIẾU NĂM 2026', `${scopeLabel} – Chuẩn hóa theo Quyết định 2429/QĐ-BYT`)}
+        <table>
+          <thead>
+            <tr style="background-color: #f1f5f9;">
+              <th style="width:28px;">STT</th>
+              <th>Máy XN</th>
+              <th>Xét nghiệm</th>
+              <th>Đơn vị</th>
+              <th>Dải tham chiếu cũ</th>
+              <th>Dải tham chiếu mới (2026)</th>
+              <th>Số lô cũ → Lô mới</th>
+              <th>Calib</th>
+              <th>Factor/Slope</th>
+              <th>Độ tuyến tính</th>
+              <th>Ngày &amp; KTV thực hiện</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+        ${buildSignatureBlock()}
+      `;
+      openModal('printModalBackdrop');
+    }
+
+    function printLeveyJennings() {
+      const ctx = getCurrentIqcContext();
+      if (!ctx) return;
+      const { param, level, basis, lvlObj } = ctx;
+      const sortedRuns = [...lvlObj.runs].sort((a, b) => a.date.localeCompare(b.date));
+      const stats = computeStats(sortedRuns.map(r => Number(r.value)));
+      const tMean = Number(lvlObj.targetMean);
+      const tSd = Number(lvlObj.targetSd);
+      const refMean = basis === 'ACTUAL' ? stats.mean : tMean;
+      const refSd = basis === 'ACTUAL' ? stats.sd : tSd;
+      const wg = evaluateWestgard(sortedRuns, refMean, refSd);
+
+      const canvas = document.getElementById('leveyJenningsCanvas');
+      const chartImg = canvas ? canvas.toDataURL('image/png', 1.0) : '';
+
+      const runsRows = wg.points.map(pt => `
+        <tr>
+          <td style="text-align:center;">${pt.index}</td>
+          <td style="text-align:center;">${formatDateVN(pt.date)}</td>
+          <td style="text-align:right;"><strong>${pt.value}</strong></td>
+          <td style="text-align:right;">${pt.z !== null ? (pt.z >= 0 ? '+' : '') + pt.z.toFixed(2) : '—'}</td>
+          <td>${pt.rules.length ? pt.rules.map(r => r.label).join('; ') : 'Đạt chuẩn'}</td>
+          <td>${escapeHtml(pt.operator)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('printContentBody').innerHTML = `
+        ${buildPrintHeader('PHIẾU THEO DÕI NỘI KIỂM TÍCH LŨY (IQC) & BIỂU ĐỒ LEVEY-JENNINGS', `Thiết bị: ${getMachineName(param.machineId)} | Thông số: ${param.name} (${param.unit}) | Mức: ${level}`)}
+        <table style="margin-bottom: 10px;">
+          <tr>
+            <td><strong>Số lô QC:</strong> ${escapeHtml(lvlObj.lot || '—')}</td>
+            <td><strong>Hạn dùng QC:</strong> ${formatDateVN(lvlObj.exp)}</td>
+            <td><strong>Target NSX:</strong> Mean = ${Number.isFinite(tMean) ? formatNum(tMean) : '—'} | SD = ${Number.isFinite(tSd) ? formatNum(tSd, 3) : '—'}</td>
+          </tr>
+          <tr>
+            <td><strong>Số điểm tích lũy (N):</strong> ${stats.n}</td>
+            <td><strong>Thực tế:</strong> Mean = ${formatNum(stats.mean)} | SD = ${stats.n < 2 ? 'Chưa đủ N≥2' : formatNum(stats.sd, 3)} | CV% = ${stats.cv !== null ? formatNum(stats.cv) + '%' : '—'}</td>
+            <td><strong>Trạng thái chốt 12/12/2026:</strong> ${lvlObj.locked ? `Đã chốt (${lvlObj.lockedAt})` : 'Chưa chốt'}</td>
+          </tr>
+        </table>
+        ${chartImg ? `<div style="text-align:center; margin: 10px 0;"><img src="${chartImg}" style="max-width:100%; max-height:260px; border:1px solid #cbd5e1; padding:4px;" /></div>` : ''}
+        <table>
+          <thead>
+            <tr style="background-color:#f1f5f9;">
+              <th>Lần</th>
+              <th>Ngày chạy</th>
+              <th>Giá trị (${escapeHtml(param.unit)})</th>
+              <th>Z-score (SD)</th>
+              <th>Đánh giá Westgard</th>
+              <th>Người thực hiện</th>
+            </tr>
+          </thead>
+          <tbody>${runsRows || '<tr><td colspan="6" style="text-align:center;">Chưa có dữ liệu chạy</td></tr>'}</tbody>
+        </table>
+        ${buildSignatureBlock()}
+      `;
+      openModal('printModalBackdrop');
+    }
+
+    function printReadinessReport() {
+      const devStats = computeDeviceReadiness();
+      const rows = devStats.map((s, i) => `
+        <tr>
+          <td style="text-align:center;">${i + 1}</td>
+          <td><strong>${escapeHtml(s.name)}</strong></td>
+          <td>${escapeHtml(s.group)}</td>
+          <td style="text-align:center;">${s.total}</td>
+          <td style="text-align:center;">${s.calibDone}/${s.total} (${s.calibPct}%)</td>
+          <td style="text-align:center;">${s.iqcReady}/${s.total} (${s.iqcPct}%)</td>
+          <td style="text-align:center;">${s.iqcLocked}/${s.total}</td>
+          <td style="text-align:center;">${s.eqaPct}%</td>
+          <td style="text-align:center;"><strong>${s.overallPct}%</strong></td>
+        </tr>
+      `).join('');
+
+      const eqaRows = appState.eqaPrograms.map((e, i) => `
+        <tr>
+          <td style="text-align:center;">${i + 1}</td>
+          <td>${escapeHtml(e.group)}</td>
+          <td>${escapeHtml(e.labCode)}</td>
+          <td>${escapeHtml(e.accountStatus)}</td>
+          <td style="text-align:center;">${formatDateVN(e.deadline)}</td>
+          <td style="text-align:center;">${escapeHtml(e.sampleStatus)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('printContentBody').innerHTML = `
+        ${buildPrintHeader('BÁO CÁO TỔNG HỢP SẴN SÀNG TÁI HOẠT ĐỘNG QA/QC TRƯỚC NGÀY 12/12/2026', 'Đánh giá đồng bộ 06 thiết bị xét nghiệm theo Tiêu chí Quyết định 2429/QĐ-BYT')}
+        <div style="font-size:12px; font-weight:bold; margin: 8px 0 4px 0;">I. TIẾN ĐỘ HIỆU CHUẨN, NỘI KIỂM TÍCH LŨY &amp; NGOẠI KIỂM THEO THIẾT BỊ</div>
+        <table>
+          <thead>
+            <tr style="background-color:#f1f5f9;">
+              <th>STT</th>
+              <th>Thiết bị</th>
+              <th>Nhóm XN</th>
+              <th>Tổng thông số</th>
+              <th>Calib &amp; Linearity</th>
+              <th>IQC ≥ 5 ngày</th>
+              <th>Đã chốt Mean/SD</th>
+              <th>EQA (%)</th>
+              <th>Sẵn sàng</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div style="font-size:12px; font-weight:bold; margin: 14px 0 4px 0;">II. TÌNH TRẠNG CÁC CHƯƠNG TRÌNH NGOẠI KIỂM (EQA)</div>
+        <table>
+          <thead>
+            <tr style="background-color:#f1f5f9;">
+              <th>STT</th>
+              <th>Nhóm / Thiết bị</th>
+              <th>Mã Phòng XN</th>
+              <th>Trạng thái tài khoản</th>
+              <th>Hạn chót trả KQ</th>
+              <th>Tình trạng mẫu</th>
+            </tr>
+          </thead>
+          <tbody>${eqaRows}</tbody>
+        </table>
+        ${buildSignatureBlock()}
+      `;
+      openModal('printModalBackdrop');
+    }
+
+    // =========================================================================
+    // 11. INITIALIZATION
+    // =========================================================================
+    function updateCountdown() {
+      const days = daysUntil(TARGET_DATE_STR);
+      const el = document.getElementById('countdownText');
+      if (days === null) return;
+      if (days > 0) {
+        el.textContent = `Còn ${days} ngày đến mốc 12/12/2026`;
+      } else if (days === 0) {
+        el.textContent = `Hôm nay là mốc tái hoạt động 12/12/2026`;
+      } else {
+        el.textContent = `Đã qua mốc 12/12/2026 (${Math.abs(days)} ngày)`;
+      }
+    }
+
+    function renderAll() {
+      renderTab1();
+      if (appState.activeTab === 'tab2') renderTab2();
+      if (appState.activeTab === 'tab3') renderTab3();
+      if (appState.activeTab === 'tab4') renderTab4();
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      loadState();
+      updateCountdown();
+
+      // Check CDN availability gracefully
+      const missingLibs = [];
+      if (typeof Chart === 'undefined') missingLibs.push('Chart.js (vẽ biểu đồ)');
+      if (typeof XLSX === 'undefined') missingLibs.push('SheetJS (xuất .xlsx)');
+      if (missingLibs.length > 0) {
+        document.getElementById('cdnWarning').classList.remove('hidden');
+        document.getElementById('cdnWarningText').textContent =
+          `Không tải được thư viện qua CDN (${missingLibs.join(', ')}) do chưa có kết nối Internet. Toàn bộ tính năng quản lý, tính toán Westgard, lưu localStorage và In/Xuất PDF A4 vẫn hoạt động bình thường.`;
+      }
+
+      switchTab(appState.activeTab || 'tab1');
+      renderTab1();
+
+      if (IS_LAN_SERVER) {
+        document.getElementById('lanSyncBtn').classList.remove('hidden');
+        if (window.self !== window.top) {
+          const brandRow = document.getElementById('brandTitleRow');
+          if (brandRow) brandRow.classList.add('hidden');
+          const fsBtn = document.getElementById('openFullscreenBtn');
+          if (fsBtn) fsBtn.classList.remove('hidden');
+        }
+        await syncFromLanServer(true, false);
+        setInterval(() => syncFromLanServer(false, false), 5000);
+      }
+    });
+  </script>
+</body>
+</html>

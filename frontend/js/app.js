@@ -201,7 +201,8 @@ function initModuleRouting() {
     { id: 'tab-documents', mod: 'documents' },
     { id: 'tab-inventory', mod: 'inventory' },
     { id: 'tab-profiles', mod: 'profiles' },
-    { id: 'tab-environment', mod: 'environment' }
+    { id: 'tab-environment', mod: 'environment' },
+    { id: 'tab-qaqc', mod: 'qaqc' }
   ];
 
   tabs.forEach(t => {
@@ -224,14 +225,15 @@ function switchModule(modName) {
 
   currentModule = modName;
 
-  // Update tabs visual (6 main modules)
+  // Update tabs visual (7 main modules)
   const navButtons = {
     'schedule': document.getElementById('tab-schedule'),
     'leave': document.getElementById('tab-leave'),
     'documents': document.getElementById('tab-documents'),
     'inventory': document.getElementById('tab-inventory'),
     'profiles': document.getElementById('tab-profiles'),
-    'environment': document.getElementById('tab-environment')
+    'environment': document.getElementById('tab-environment'),
+    'qaqc': document.getElementById('tab-qaqc')
   };
 
   const modViews = {
@@ -240,7 +242,8 @@ function switchModule(modName) {
     'documents': document.getElementById('view-documents'),
     'inventory': document.getElementById('view-inventory'),
     'profiles': document.getElementById('view-profiles'),
-    'environment': document.getElementById('view-environment')
+    'environment': document.getElementById('view-environment'),
+    'qaqc': document.getElementById('view-qaqc')
   };
 
   Object.keys(navButtons).forEach(key => {
@@ -270,6 +273,11 @@ function switchModule(modName) {
     window.loadProfilesModule();
   } else if (modName === 'environment' && window.loadEnvironmentModule) {
     window.loadEnvironmentModule();
+  } else if (modName === 'qaqc') {
+    const qaqcFrame = document.getElementById('qaqc-module-frame');
+    if (qaqcFrame && qaqcFrame.getAttribute('src') === 'about:blank') {
+      qaqcFrame.setAttribute('src', qaqcFrame.getAttribute('data-src') || '/static/qaqc.html');
+    }
   }
 }
 

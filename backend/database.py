@@ -161,6 +161,17 @@ def _init_postgres_db():
     );
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS qaqc_store (
+        id SERIAL PRIMARY KEY,
+        store_key VARCHAR(100) UNIQUE NOT NULL,
+        data_json TEXT NOT NULL,
+        version VARCHAR(100) NOT NULL,
+        updated_by VARCHAR(255),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
     conn.commit()
 
     _seed_users(cursor)
@@ -289,6 +300,17 @@ def _init_sqlite_db():
         description TEXT,
         added_by TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS qaqc_store (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        store_key TEXT UNIQUE NOT NULL,
+        data_json TEXT NOT NULL,
+        version TEXT NOT NULL,
+        updated_by TEXT,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
     """)
 
