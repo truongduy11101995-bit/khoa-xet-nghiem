@@ -1,7 +1,7 @@
 import datetime
 import io
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Response, Body
 from fastapi.responses import StreamingResponse
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
@@ -439,3 +439,114 @@ def export_schedule_excel(
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+@router.get("/handovers")
+def get_shift_handovers(user: dict = Depends(get_current_user)):
+    """Get shift handover log (KTV ra trực -> KTV nhận trực) + today/yesterday direct schedule."""
+    today = datetime.date.today()
+    today_str = today.strftime("%Y-%m-%d")
+    yesterday_str = (today - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT * FROM shift_handovers
+        ORDER BY handover_date DESC, id DESC
+        LIMIT 30
+    """)
+    handovers = [dict(r) for r in cursor.fetchall()]
+
+    # Auto-detect who was on 'truc' yesterday (outgoing at 07h00 today) and who is on 'truc' today (incoming)
+    cursor.execute("""
+        SELECT s.work_date, u.id as user_id, u.full_name
+        FROM schedules s
+        JOIN positions p ON s.position_id = p.id
+        JOIN users u ON s.user_id = u.id
+        WHERE p.category = 'direct' AND s.work_date IN (?, ?)
+    """, (yesterday_str, today_str))
+    sched_rows = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+
+    yesterday_truc = next((r for r in sched_rows if r["work_date"] == yesterday_str), None)
+    today_truc = next((r for r in sched_rows if r["work_date"] == today_str), None)
+
+    return {
+        "success": True,
+        "today": today_str,
+        "yesterday": yesterday_str,
+        "suggested_outgoing": yesterday_truc,
+        "suggested_incoming": today_truc,
+        "handovers": handovers
+    }
+
+@router.post("/handovers")
+def create_shift_handover(
+    payload: Dict[str, Any] = Body(...),
+    user: dict = Depends(get_current_user)
+):
+    """Record a shift handover (KTV ra trực bàn giao KTV nhận trực - chỉ 01 KTV/ca)."""
+    handover_date = (payload.get("handover_date") or datetime.date.today().strftime("%Y-%m-%d")).strip()
+    shift_time = (payload.get("shift_time") or "07h00 (Giao ca Sáng)").strip()
+    outgoing_user_id = payload.get("outgoing_user_id")
+    incoming_user_id = payload.get("incoming_user_id")
+    outgoing_name = (payload.get("outgoing_name") or "").strip()
+    incoming_name = (payload.get("incoming_name") or "").strip()
+    equipment_status = (payload.get("equipment_status") or "6 máy chính hoạt động bình thường").strip()
+    pending_samples = (payload.get("pending_samples") or "Không có mẫu tồn").strip()
+    notes = (payload.get("notes") or "").strip()
+
+    if not outgoing_name or not incoming_name:
+        raise HTTPException(status_code=400, detail="Vui lòng chọn KTV ra trực và KTV nhận trực.")
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO shift_handovers (
+            handover_date, shift_time, outgoing_user_id, outgoing_name,
+            incoming_user_id, incoming_name, equipment_status, pending_samples,
+            notes, created_by
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        handover_date, shift_time, outgoing_user_id, outgoing_name,
+        incoming_user_id, incoming_name, equipment_status, pending_samples,
+        notes, user["id"]
+    ))
+    new_id = cursor.lastrowid
+    cursor.execute("""
+        INSERT INTO system_logs (user_id, action, details)
+        VALUES (?, 'SHIFT_HANDOVER', ?)
+    """, (user["id"], f"Bàn giao trực {handover_date} ({shift_time}): {outgoing_name} -> {incoming_name}"))
+    conn.commit()
+    conn.close()
+
+    return {
+        "success": True,
+        "id": new_id,
+        "message": f"Đã ghi nhận bàn giao trực: {outgoing_name} (Ra) ➔ {incoming_name} (Vào)!"
+    }
+
+@router.delete("/handovers/{handover_id}")
+def delete_shift_handover(
+    handover_id: int,
+    user: dict = Depends(get_current_user)
+):
+    """Delete a shift handover record (owner or admin)."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM shift_handovers WHERE id = ?", (handover_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Không tìm thấy lượt bàn giao trực này.")
+
+    row_dict = dict(row)
+    is_admin = user.get("role") in ("truong_khoa", "ktv_truong")
+    if not is_admin and row_dict.get("created_by") != user["id"]:
+        conn.close()
+        raise HTTPException(status_code=403, detail="Chỉ người tạo hoặc Trưởng khoa / KTV Trưởng mới được xóa.")
+
+    cursor.execute("DELETE FROM shift_handovers WHERE id = ?", (handover_id,))
+    conn.commit()
+    conn.close()
+    return {"success": True, "message": "Đã xóa bản ghi bàn giao trực."}

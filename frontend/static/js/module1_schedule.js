@@ -17,6 +17,7 @@ window.loadScheduleModule = async function() {
 
   await loadStaffAndPositions();
   await fetchWeeklySchedule();
+  await loadShiftHandovers();
 };
 
 function formatDateToISO(d) {
@@ -327,3 +328,158 @@ async function copyWeekToNext() {
     showToast('Lỗi kết nối khi sao chép lịch.', 'error');
   }
 }
+
+// ================= SHIFT HANDOVERS (AI TRỰC RA - AI TRỰC VÀO) =================
+window.loadShiftHandovers = async function() {
+  const dateInput = document.getElementById('ho-date');
+  if (dateInput && !dateInput.value) {
+    dateInput.value = formatDateToISO(new Date());
+  }
+
+  const outSelect = document.getElementById('ho-outgoing-user');
+  const inSelect = document.getElementById('ho-incoming-user');
+  if (outSelect && inSelect && scheduleStaffList.length > 0) {
+    const optsHtml = scheduleStaffList.map(u => `<option value="${u.id}">${u.full_name}</option>`).join('');
+    outSelect.innerHTML = `<option value="">-- Chọn KTV ra trực --</option>` + optsHtml;
+    inSelect.innerHTML = `<option value="">-- Chọn KTV vào trực --</option>` + optsHtml;
+  }
+
+  try {
+    const res = await fetch('/api/schedule/handovers');
+    const data = await res.json();
+    if (!res.ok || !data.success) return;
+
+    const handovers = data.handovers || [];
+    const summaryEl = document.getElementById('handover-today-summary');
+
+    // Auto pre-select suggested outgoing / incoming
+    if (outSelect && !outSelect.value && data.suggested_outgoing) {
+      outSelect.value = String(data.suggested_outgoing.user_id);
+    }
+    if (inSelect && !inSelect.value && data.suggested_incoming) {
+      inSelect.value = String(data.suggested_incoming.user_id);
+    }
+
+    if (summaryEl) {
+      const latest = handovers[0];
+      if (latest) {
+        summaryEl.innerHTML = `Gần nhất (${latest.handover_date}): <span class="text-rose-200 font-bold">Ra: ${latest.outgoing_name}</span> ➔ <span class="text-emerald-200 font-bold">Vào: ${latest.incoming_name}</span>`;
+      } else if (data.suggested_outgoing || data.suggested_incoming) {
+        const outN = data.suggested_outgoing ? data.suggested_outgoing.full_name : 'Chưa xếp';
+        const inN = data.suggested_incoming ? data.suggested_incoming.full_name : 'Chưa xếp';
+        summaryEl.innerHTML = `Theo lịch trực: <span class="text-rose-200 font-bold">Ra: ${outN}</span> ➔ <span class="text-emerald-200 font-bold">Vào: ${inN}</span>`;
+      } else {
+        summaryEl.textContent = 'Chưa có lượt bàn giao trực nào';
+      }
+    }
+
+    const tbody = document.getElementById('shift-handovers-tbody');
+    if (!tbody) return;
+
+    if (handovers.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="p-6 text-center text-slate-400">
+            Chưa có dữ liệu bàn giao ca trực. Chọn KTV Ra Trực &amp; KTV Vào Trực ở trên rồi bấm <b>"✓ Lưu Giao Ca"</b>.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    const isAdmin = currentUser && ['truong_khoa', 'ktv_truong'].includes(currentUser.role);
+    const myId = currentUser ? currentUser.id : null;
+
+    tbody.innerHTML = handovers.map((h, idx) => {
+      const parts = (h.handover_date || '').split('-');
+      const dVN = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : h.handover_date;
+      const canDel = isAdmin || (myId && h.created_by === myId);
+      return `
+        <tr class="hover:bg-purple-50/30 transition border-b border-slate-100">
+          <td class="p-2.5 text-center font-bold text-slate-400">${idx + 1}</td>
+          <td class="p-2.5 text-center font-mono font-bold text-slate-800 whitespace-nowrap">${dVN}</td>
+          <td class="p-2.5 font-semibold text-purple-900">${h.shift_time}</td>
+          <td class="p-2.5">
+            <span class="px-2 py-0.5 rounded-lg bg-rose-50 text-rose-800 border border-rose-200 font-bold whitespace-nowrap">⬅️ ${h.outgoing_name}</span>
+          </td>
+          <td class="p-2.5">
+            <span class="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold whitespace-nowrap">➡️ ${h.incoming_name}</span>
+          </td>
+          <td class="p-2.5 text-slate-700">
+            <div><b class="text-slate-800">Máy:</b> ${h.equipment_status || 'Bình thường'}</div>
+            <div class="text-[11px] text-slate-500"><b>Mẫu tồn:</b> ${h.pending_samples || 'Không'}${h.notes ? ` • <b>Ghi chú:</b> ${h.notes}` : ''}</div>
+          </td>
+          <td class="p-2.5 text-center">
+            ${canDel ? `<button onclick="deleteShiftHandover(${h.id})" class="px-2 py-1 text-red-600 hover:bg-red-50 rounded border border-red-200 text-[11px] font-bold">Xóa</button>` : '--'}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('Error loading shift handovers', err);
+  }
+};
+
+window.submitShiftHandover = async function() {
+  const handover_date = document.getElementById('ho-date')?.value;
+  const shift_time = document.getElementById('ho-shift-time')?.value;
+  const outEl = document.getElementById('ho-outgoing-user');
+  const inEl = document.getElementById('ho-incoming-user');
+  const equipment_status = document.getElementById('ho-equipment')?.value?.trim();
+  const pending_samples = document.getElementById('ho-samples')?.value?.trim();
+  const notes = document.getElementById('ho-notes')?.value?.trim();
+
+  const outgoing_user_id = outEl && outEl.value ? parseInt(outEl.value) : null;
+  const incoming_user_id = inEl && inEl.value ? parseInt(inEl.value) : null;
+  const outgoing_name = outEl && outEl.selectedIndex > 0 ? outEl.options[outEl.selectedIndex].text : '';
+  const incoming_name = inEl && inEl.selectedIndex > 0 ? inEl.options[inEl.selectedIndex].text : '';
+
+  if (!outgoing_name || !incoming_name) {
+    showToast('Vui lòng chọn đầy đủ KTV Ra Trực và KTV Vào Trực!', 'warning');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/schedule/handovers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        handover_date,
+        shift_time,
+        outgoing_user_id,
+        outgoing_name,
+        incoming_user_id,
+        incoming_name,
+        equipment_status,
+        pending_samples,
+        notes
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast(data.message, 'success');
+      if (document.getElementById('ho-notes')) document.getElementById('ho-notes').value = '';
+      await loadShiftHandovers();
+    } else {
+      showToast(data.detail || 'Không thể lưu bàn giao trực.', 'error');
+    }
+  } catch (err) {
+    showToast('Lỗi kết nối khi lưu bàn giao trực.', 'error');
+  }
+};
+
+window.deleteShiftHandover = async function(id) {
+  if (!confirm('Xóa bản ghi bàn giao ca trực này?')) return;
+  try {
+    const res = await fetch(`/api/schedule/handovers/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast('Đã xóa bản ghi bàn giao trực.', 'info');
+      await loadShiftHandovers();
+    } else {
+      showToast(data.detail || 'Không thể xóa.', 'error');
+    }
+  } catch (err) {
+    showToast('Lỗi kết nối.', 'error');
+  }
+};

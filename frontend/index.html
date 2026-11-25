@@ -88,8 +88,8 @@
           <span id="stat-total-docs" class="font-extrabold bg-white/15 px-2 py-0.5 rounded">147 biểu mẫu</span>
         </div>
         <div class="flex items-center gap-1.5">
-          <span class="text-sky-200">Kho hóa chất:</span>
-          <span id="stat-total-inventory" class="font-extrabold bg-white/15 px-2 py-0.5 rounded">135 mục</span>
+          <span class="text-sky-200">Kho vật tư:</span>
+          <span id="stat-total-inventory" class="font-extrabold bg-white/15 px-2 py-0.5 rounded">37 mục</span>
         </div>
       </div>
 
@@ -126,7 +126,7 @@
 
         <button id="tab-inventory" onclick="switchModule('inventory')" class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 whitespace-nowrap">
           <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-          <span>4. Kho Hóa Chất & Vật Tư</span>
+          <span>4. Kho Vật Tư Thực Tế</span>
         </button>
 
         <button id="tab-profiles" onclick="switchModule('profiles')" class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 whitespace-nowrap">
@@ -192,6 +192,91 @@
       <!-- Schedule Table Container -->
       <div id="schedule-table-container">
         <!-- Injected by module1_schedule.js -->
+      </div>
+
+      <!-- Shift Handover Section: Ai Trực Ra - Ai Trực Vào (Chỉ 01 KTV/ca) -->
+      <div class="bg-white rounded-2xl border border-purple-200 shadow-sm overflow-hidden">
+        <div class="bg-gradient-to-r from-purple-800 to-indigo-800 text-white p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm sm:text-base font-extrabold uppercase flex items-center gap-2">
+              <span>🔄 SỔ BÀN GIAO CA TRỰC (AI TRỰC RA – AI TRỰC VÀO)</span>
+            </h3>
+            <p class="text-xs text-purple-200 mt-0.5">Trực thường trực: 01 KTV/ca • Giao ca lúc 07h00 &amp; 17h00 (Không có BS trực)</p>
+          </div>
+          <div id="handover-today-summary" class="bg-white/15 backdrop-blur-xs px-3 py-1.5 rounded-xl border border-white/20 text-xs font-semibold">
+            Đang tải thông tin trực ra / trực vào...
+          </div>
+        </div>
+
+        <div class="p-4 space-y-4">
+          <!-- Quick Entry Form -->
+          <div class="bg-purple-50/70 border border-purple-200 rounded-xl p-3.5 space-y-3">
+            <div class="text-xs font-extrabold text-purple-950 uppercase">📝 Ghi Nhận Giao Ca (KTV Ra Trực ➔ KTV Nhận Trực)</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Ngày bàn giao:</label>
+                <input type="date" id="ho-date" class="w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-800">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Khung giờ giao ca:</label>
+                <select id="ho-shift-time" class="w-full p-2 bg-white border border-slate-300 rounded-xl font-semibold text-slate-800">
+                  <option value="07h00 (Ra trực đêm ➔ Vào ca sáng)">07h00 (Ra trực đêm ➔ Vào ca sáng)</option>
+                  <option value="17h00 (Hết giờ HC ➔ Vào trực đêm)">17h00 (Hết giờ HC ➔ Vào trực đêm)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold text-rose-700 mb-1">KTV Ra Trực (Bàn giao):</label>
+                <select id="ho-outgoing-user" class="w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-rose-900"></select>
+              </div>
+              <div>
+                <label class="block font-bold text-emerald-700 mb-1">KTV Vào Trực (Nhận ca):</label>
+                <select id="ho-incoming-user" class="w-full p-2 bg-white border border-emerald-300 rounded-xl font-bold text-emerald-900"></select>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Tình trạng 6 máy xét nghiệm chính:</label>
+                <input type="text" id="ho-equipment" value="6 máy chính (CELLDIFF-580, URSA-500, Monarch 1000, AE 1000, Thrombo Fast, Electalyte 500) hoạt động bình thường"
+                       class="w-full p-2 bg-white border border-slate-300 rounded-xl">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Mẫu bệnh phẩm tồn / Lưu ý:</label>
+                <input type="text" id="ho-samples" placeholder="Không có mẫu tồn / Đã trả hết KQ..." value="Không có mẫu tồn"
+                       class="w-full p-2 bg-white border border-slate-300 rounded-xl">
+              </div>
+              <div class="flex items-end gap-2">
+                <div class="flex-grow">
+                  <label class="block font-bold text-slate-700 mb-1">Ghi chú thêm:</label>
+                  <input type="text" id="ho-notes" placeholder="Vệ sinh, hóa chất, tủ lạnh..."
+                         class="w-full p-2 bg-white border border-slate-300 rounded-xl">
+                </div>
+                <button onclick="submitShiftHandover()" class="px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-xl shadow-sm transition whitespace-nowrap">
+                  ✓ Lưu Giao Ca
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Handovers Table -->
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-100 text-slate-700 uppercase font-bold text-[11px] border-b border-slate-200">
+                  <th class="p-2.5 text-center w-10">STT</th>
+                  <th class="p-2.5 w-28 text-center">Ngày</th>
+                  <th class="p-2.5 w-44">Giờ Giao Ca</th>
+                  <th class="p-2.5 w-44 text-rose-800">KTV Ra Trực</th>
+                  <th class="p-2.5 w-44 text-emerald-800">KTV Vào Trực</th>
+                  <th class="p-2.5 min-w-[200px]">Tình Trạng Máy &amp; Mẫu Tồn</th>
+                  <th class="p-2.5 text-center w-16">Xóa</th>
+                </tr>
+              </thead>
+              <tbody id="shift-handovers-tbody">
+                <tr><td colspan="7" class="p-6 text-center text-slate-400">Đang tải sổ bàn giao trực...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -818,23 +903,18 @@
         </div>
       </div>
 
-      <!-- Main 3-Section Sub-Tabs -->
+      <!-- Main 2-Section Sub-Tabs -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="border-b border-slate-200 p-2 sm:p-3 bg-slate-50/70 flex items-center gap-2 flex-wrap">
           <button id="inv-subtab-btn-stock" onclick="switchInventorySubTab('stock')"
                   class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-sky-700 text-white shadow-sm transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
             <span>1. Số Lượng Kho Thực Tế</span>
-          </button>
-          <button id="inv-subtab-btn-forecast" onclick="switchInventorySubTab('forecast')"
-                  class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            <span>2. Dự Trù Hóa Chất & Vật Tư</span>
           </button>
           <button id="inv-subtab-btn-openvials" onclick="switchInventorySubTab('openvials')"
                   class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-            <span>3. Quản Lý Hạn Mở Nắp Lọ (In-Use Stability)</span>
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            <span>2. Quản Lý Hạn Mở Nắp Lọ (In-Use Stability)</span>
           </button>
         </div>
 
@@ -910,117 +990,7 @@
           </div>
         </div>
 
-        <!-- MỤC 2: DỰ TRÙ HÓA CHẤT & VẬT TƯ TIÊU HAO (KẾ HOẠCH MUA SẮM & DỰ TRÙ & THEO DÕI NỢ DƯỢC) -->
-        <div id="inv-content-forecast" class="hidden p-4 sm:p-5 space-y-4">
-          <!-- Planning Controls Bar -->
-          <div class="bg-sky-50/70 border border-sky-100 p-4 rounded-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-            <div class="flex items-center gap-2">
-              <label class="text-xs font-bold text-sky-950 whitespace-nowrap">Kỳ dự trù:</label>
-              <select id="forecast-period-select" class="px-3 py-1.5 bg-white border border-sky-300 rounded-xl text-xs font-bold text-sky-900 focus:outline-none focus:ring-2 focus:ring-sky-600">
-                <option value="Tháng 12/2026">Tháng 12/2026</option>
-                <option value="Tháng 01/2027">Tháng 01/2027</option>
-                <option value="Quý I/2027">Quý I/2027</option>
-                <option value="Đợt Đột Xuất Tháng 12/2026">Đợt Đột Xuất Tháng 12/2026</option>
-              </select>
-            </div>
-
-            <div class="flex items-center gap-2 flex-wrap">
-              <button id="btn-forecast-autocalc" onclick="autoCalculateForecast()" class="px-3.5 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="Tự động tính đề xuất dựa trên tồn kho và mức tiêu hao">
-                <svg class="w-4 h-4 text-amber-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                <span>Tự Động Tính Đề Xuất</span>
-              </button>
-              <button id="btn-forecast-save" onclick="saveForecastPlan()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                <span>Lưu Dự Trù</span>
-              </button>
-              <button onclick="printOfficialForecastForm()" class="px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                <span>In Phiếu Dự Trù & Nợ Hàng (A4)</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Debt & Delivery Tracking Alert Cards -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex items-center gap-3 shadow-xs">
-              <div class="p-2 bg-blue-50 text-blue-700 rounded-lg shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-              </div>
-              <div>
-                <div class="text-[11px] font-semibold text-slate-500 uppercase">Mặt Hàng Dự Trù</div>
-                <div id="forecast-kpi-total-items" class="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">--</div>
-              </div>
-            </div>
-
-            <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex items-center gap-3 shadow-xs">
-              <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-              </div>
-              <div>
-                <div class="text-[11px] font-semibold text-slate-500 uppercase">Đã Nhận Đủ Hàng</div>
-                <div id="forecast-kpi-fully-supplied" class="text-sm sm:text-base font-extrabold text-emerald-700 mt-0.5">--</div>
-              </div>
-            </div>
-
-            <div class="bg-red-50/70 p-3.5 rounded-xl border border-red-200 flex items-center gap-3 shadow-xs">
-              <div class="p-2 bg-red-100 text-red-600 rounded-lg shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-              </div>
-              <div>
-                <div class="text-[11px] font-bold text-red-700 uppercase">Dược Còn Nợ Hàng (Phát Sau)</div>
-                <div id="forecast-kpi-debt-items" class="text-sm sm:text-base font-black text-red-700 mt-0.5">0 Mặt Hàng</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Formula Help Note -->
-          <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
-            <span class="text-base leading-none">💡</span>
-            <div>
-              <strong>Quy trình dự trù & ghi nợ dược:</strong> Khoa Xét nghiệm dự trù theo nhu cầu sử dụng. Khi Kho Dược cấp hàng, nếu Dược thiếu hàng sẽ <b>ghi nợ lại</b>. Số nợ = (SL Dự trù - SL Thực cấp). Khi Kho Dược có hàng về phát sau, bấm nút <b>"⚡ Nhận Bù Hàng Nợ"</b> để cập nhật và tự động cộng vào tồn kho thực tế của Khoa.
-            </div>
-          </div>
-
-          <!-- Forecast Table -->
-          <div class="overflow-x-auto border border-slate-200 rounded-xl">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
-                  <th class="p-2.5 text-center w-10">STT</th>
-                  <th class="p-2.5 w-20">Mã</th>
-                  <th class="p-2.5 min-w-[170px]">Tên Mặt Hàng</th>
-                  <th class="p-2.5 text-center w-14">ĐVT</th>
-                  <th class="p-2.5 text-right w-16">Tồn Kho</th>
-                  <th class="p-2.5 text-right w-16">Tiêu Hao</th>
-                  <th class="p-2.5 text-right w-16 text-sky-800">Đề Xuất</th>
-                  <th class="p-2.5 text-center w-24 text-amber-900 bg-amber-50/60">SL Dự Trù (Khoa Xin)</th>
-                  <th class="p-2.5 text-center w-24 text-blue-900 bg-blue-50/60">SL Thực Cấp (Dược Giao)</th>
-                  <th class="p-2.5 text-center w-28 text-red-700 bg-red-50/60">Dược Còn Nợ</th>
-                  <th class="p-2.5 text-right w-24">Đơn Giá (đ)</th>
-                  <th class="p-2.5 text-right w-28 text-red-700">Thành Tiền</th>
-                  <th class="p-2.5 min-w-[140px]">Ghi Chú Nợ / Hẹn Phát</th>
-                  <th class="p-2.5 text-center w-24">Thao Tác</th>
-                </tr>
-              </thead>
-              <tbody id="forecast-items-tbody">
-                <!-- Injected by module6_inventory.js -->
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Forecast Summary Footer -->
-          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div class="text-xs text-slate-500">
-              * Biểu mẫu dự trù hóa chất, vật tư y tế BM.HC.01 bao gồm chữ ký của Người lập dự trù, KTV Trưởng, Trưởng khoa, Kho Dược và Ban Giám Đốc.
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="text-xs font-bold uppercase text-slate-700">Tổng Kinh Phí Dự Trù:</span>
-              <span id="forecast-total-cost-text" class="text-lg font-black text-red-600 font-mono">0 VNĐ</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- MỤC 3: QUẢN LÝ HẠN MỞ NẮP LỌ (IN-USE STABILITY / OPEN-VIAL MANAGEMENT) -->
+        <!-- MỤC 2: QUẢN LÝ HẠN MỞ NẮP LỌ (IN-USE STABILITY / OPEN-VIAL MANAGEMENT) -->
         <div id="inv-content-openvials" class="hidden p-4 sm:p-5 space-y-4">
           <!-- Toolbar & Filters -->
           <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">

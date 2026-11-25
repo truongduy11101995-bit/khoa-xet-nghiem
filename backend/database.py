@@ -172,11 +172,29 @@ def _init_postgres_db():
     );
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS shift_handovers (
+        id SERIAL PRIMARY KEY,
+        handover_date VARCHAR(20) NOT NULL,
+        shift_time VARCHAR(50) NOT NULL,
+        outgoing_user_id INTEGER,
+        outgoing_name VARCHAR(255) NOT NULL,
+        incoming_user_id INTEGER,
+        incoming_name VARCHAR(255) NOT NULL,
+        equipment_status TEXT,
+        pending_samples TEXT,
+        notes TEXT,
+        created_by INTEGER,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
     conn.commit()
 
     _seed_users(cursor)
     _seed_positions(cursor)
     _seed_sample_schedules(cursor)
+    _sync_real_inventory_20261125(cursor)
 
     conn.commit()
     conn.close()
@@ -314,6 +332,23 @@ def _init_sqlite_db():
     );
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS shift_handovers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        handover_date TEXT NOT NULL,
+        shift_time TEXT NOT NULL,
+        outgoing_user_id INTEGER,
+        outgoing_name TEXT NOT NULL,
+        incoming_user_id INTEGER,
+        incoming_name TEXT NOT NULL,
+        equipment_status TEXT,
+        pending_samples TEXT,
+        notes TEXT,
+        created_by INTEGER,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
     conn.commit()
 
     _seed_users(cursor)
@@ -321,9 +356,85 @@ def _init_sqlite_db():
     _seed_sample_schedules(cursor)
     _seed_documents_from_disk(cursor)
     _seed_employee_files_from_disk(cursor)
+    _sync_real_inventory_20261125(cursor)
 
     conn.commit()
     conn.close()
+
+def _sync_real_inventory_20261125(cursor):
+    """One-time sync: replace old inventory with exact 37 real stock-take items."""
+    try:
+        cursor.execute("SELECT version FROM qaqc_store WHERE store_key = 'real_inventory_sync'")
+        row = cursor.fetchone()
+        if row and (dict(row).get("version") if hasattr(row, "keys") else row[0]) == "20261125_37items":
+            return
+
+        # Clear old inventory & forecasts (no chemicals, only real physical stock)
+        try:
+            cursor.execute("DELETE FROM inventory_forecasts")
+        except Exception:
+            pass
+        cursor.execute("DELETE FROM inventory_items")
+
+        real_items = [
+            ("VT-001", "Cuvet chỉ (đông máu)", "vat_tu", "vỉ", "Vật tư tiêu hao xét nghiệm • 2 vĩ + 5 vĩ", "", "", None, "Nhiệt độ phòng", 7, 2, 0, 0, "Kho vật tư XN", ""),
+            ("VT-002", "Lacet", "vat_tu", "cái", "Vật tư tiêu hao xét nghiệm • 150", "", "", None, "Nhiệt độ phòng", 150, 30, 0, 0, "Kho vật tư XN", "Kim trích máu (Lancet)"),
+            ("VT-003", "Kim chích máu", "vat_tu", "cái", "Vật tư tiêu hao xét nghiệm • 47 + 17 = 64", "", "", None, "Nhiệt độ phòng", 64, 20, 0, 0, "Kho vật tư XN", ""),
+            ("VT-004", "Đầu col có lọc", "vat_tu", "cái", "Vật tư tiêu hao xét nghiệm • 96 + 51 = 147", "", "", None, "Nhiệt độ phòng", 147, 50, 0, 0, "Kho vật tư XN", ""),
+            ("VT-005", "Găng tay 75", "vat_tu", "đôi", "Găng tay & Bảo hộ • 50 đôi", "", "", None, "Nhiệt độ phòng", 50, 10, 0, 0, "Kho vật tư XN", ""),
+            ("VT-006", "Găng tay VGlove", "vat_tu", "thùng", "Găng tay & Bảo hộ • 2 thùng (100 đôi)", "VGlove", "", None, "Nhiệt độ phòng", 2, 1, 0, 0, "Kho vật tư XN", "Tổng 100 đôi"),
+            ("VT-007", "Đầu col có lọc 100-1000µl (Thùng)", "vat_tu", "thùng", "Vật tư tiêu hao xét nghiệm • 1 thùng", "", "", None, "Nhiệt độ phòng", 1, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-008", "Khẩu trang", "vat_tu", "bịch", "Găng tay & Bảo hộ • 3 bịch", "", "", None, "Nhiệt độ phòng", 3, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-009", "Găng tay size S không bột", "vat_tu", "hộp", "Găng tay & Bảo hộ • 2 hộp", "", "", None, "Nhiệt độ phòng", 2, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-010", "Găng tay size M không bột", "vat_tu", "hộp", "Găng tay & Bảo hộ • 1 hộp", "", "", None, "Nhiệt độ phòng", 1, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-011", "Găng tay size S có bột", "vat_tu", "hộp", "Găng tay & Bảo hộ • 3 hộp", "", "", None, "Nhiệt độ phòng", 3, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-012", "Ống Serum", "vat_tu", "vỉ", "Vật tư tiêu hao xét nghiệm • 15 vĩ", "", "", None, "Nhiệt độ phòng", 15, 3, 0, 0, "Kho vật tư XN", ""),
+            ("VT-013", "Lam kính", "vat_tu", "hộp", "Vật tư tiêu hao xét nghiệm • 5 hộp", "", "", None, "Nhiệt độ phòng", 5, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-014", "Đầu col xanh", "vat_tu", "bịch", "Vật tư tiêu hao xét nghiệm • 3 bịch", "", "", None, "Nhiệt độ phòng", 3, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-015", "Đầu col trắng có khía", "vat_tu", "bịch", "Vật tư tiêu hao xét nghiệm • 1 bịch", "", "", None, "Nhiệt độ phòng", 1, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-016", "Cuvet miễn dịch", "vat_tu", "bịch", "Vật tư tiêu hao xét nghiệm • 3 bịch", "", "", None, "Nhiệt độ phòng", 3, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-017", "Đầu col có lọc 200µl", "vat_tu", "hộp", "Vật tư tiêu hao xét nghiệm • 2 hộp", "", "", None, "Nhiệt độ phòng", 2, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-018", "Đầu col có lọc 100-1000µl", "vat_tu", "hộp", "Vật tư tiêu hao xét nghiệm • 4 hộp + 1 hộp = 5 hộp", "", "", None, "Nhiệt độ phòng", 5, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-019", "Đầu col có lọc 1-200µl", "vat_tu", "hộp", "Vật tư tiêu hao xét nghiệm • 6 hộp + 4 hộp = 10 hộp", "", "", None, "Nhiệt độ phòng", 10, 2, 0, 0, "Kho vật tư XN", ""),
+            ("VT-020", "Đầu col có lọc 200µl (zerotip)", "vat_tu", "hộp", "Vật tư tiêu hao xét nghiệm • 2 hộp (zerotip)", "", "", None, "Nhiệt độ phòng", 2, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-021", "Khay inox vuông", "vat_tu", "khay", "Dụng cụ y tế & Inox • 1 khay + 1 khay", "", "", None, "Nhiệt độ phòng", 2, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-022", "Hộp gòn", "vat_tu", "hộp", "Dụng cụ y tế & Inox • 2 hộp + 1 hộp", "", "", None, "Nhiệt độ phòng", 3, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-023", "Bình đựng pen", "vat_tu", "cây", "Dụng cụ y tế & Inox • 1 cây", "", "", None, "Nhiệt độ phòng", 1, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-024", "Kéo", "vat_tu", "cây", "Dụng cụ y tế & Inox • 1 cây", "", "", None, "Nhiệt độ phòng", 1, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-025", "Pen", "vat_tu", "cây", "Dụng cụ y tế & Inox • 3 cây", "", "", None, "Nhiệt độ phòng", 3, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-026", "Cây hốt rác", "vat_tu", "cây", "Vệ sinh & Hóa chất • 3 cây", "", "", None, "Nhiệt độ phòng", 3, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-027", "Chổi quét", "vat_tu", "cây", "Vệ sinh & Hóa chất • 3 cây", "", "", None, "Nhiệt độ phòng", 3, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-028", "Nước Javel", "vat_tu", "chai", "Vệ sinh & Hóa chất • 3 chai", "", "", None, "Nhiệt độ phòng", 3, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-029", "Cồn y tế", "vat_tu", "chai", "Vệ sinh & Hóa chất • 3 chai", "", "", None, "Nhiệt độ phòng", 3, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-030", "Kẹp, pen", "vat_tu", "cái", "Dụng cụ y tế & Inox • 3 cái mỗi loại + 2 cái nữa/loại = 5/5", "", "", None, "Nhiệt độ phòng", 10, 2, 0, 0, "Kho vật tư XN", "Mỗi loại 5 cái (Kẹp: 5, Pen: 5)"),
+            ("VT-031", "Kính bảo vệ mắt", "vat_tu", "cái", "Găng tay & Bảo hộ • 5 cái", "", "", None, "Nhiệt độ phòng", 5, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-032", "Khẩu trang N95", "vat_tu", "túi", "Găng tay & Bảo hộ • 3 túi", "", "", None, "Nhiệt độ phòng", 3, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-033", "Tạp dề sử dụng 1 lần", "vat_tu", "cái", "Găng tay & Bảo hộ • 5 cái", "", "", None, "Nhiệt độ phòng", 5, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-034", "Khăn giấy", "vat_tu", "cây", "Vệ sinh & Hóa chất • 1 cây", "", "", None, "Nhiệt độ phòng", 1, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-035", "Khay inox lớn", "vat_tu", "cái", "Dụng cụ y tế & Inox • 2 cái", "", "", None, "Nhiệt độ phòng", 2, 1, 0, 0, "Kho vật tư XN", ""),
+            ("VT-036", "Nón bao tóc", "vat_tu", "cái", "Găng tay & Bảo hộ • Chưa ghi số lượng", "", "", None, "Nhiệt độ phòng", 0, 1, 0, 0, "Kho vật tư XN", "Cần kiểm tra & bổ sung số lượng"),
+            ("VT-037", "Giấy in nhiệt", "vat_tu", "cuộn", "Văn phòng & In ấn • 16 cuộn", "", "", None, "Nhiệt độ phòng", 16, 4, 0, 0, "Kho vật tư XN", ""),
+        ]
+
+        for item in real_items:
+            cursor.execute("""
+                INSERT INTO inventory_items (
+                    code, name, category, unit, spec, manufacturer, lot_number,
+                    expiry_date, storage_temp, quantity, min_stock, monthly_usage,
+                    unit_price, location, notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, item)
+
+        cursor.execute("""
+            INSERT INTO qaqc_store (store_key, data_json, version, updated_by)
+            VALUES ('real_inventory_sync', '{"count": 37}', '20261125_37items', 'system')
+            ON CONFLICT(store_key) DO UPDATE SET
+                data_json = excluded.data_json,
+                version = excluded.version,
+                updated_at = CURRENT_TIMESTAMP
+        """)
+    except Exception as e:
+        print("Sync real inventory warning:", e)
 
 def _seed_users(cursor):
     """Seed the 4 personnel of the department."""

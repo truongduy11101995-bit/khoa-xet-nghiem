@@ -20,40 +20,33 @@ let inventoryState = {
 // Main loader for Module 4 (Inventory)
 window.loadInventoryModule = async function() {
   await fetchInventoryItems();
-  if (inventoryState.activeSubTab === 'forecast') {
-    initForecastDraft();
-  } else if (inventoryState.activeSubTab === 'openvials') {
+  if (inventoryState.activeSubTab === 'openvials') {
     fetchOpenVials();
   }
 };
 
-// Switch between 3 main sections: Tồn Kho Thực Tế & Dự Trù & Hạn Mở Nắp
+// Switch between 2 main sections: Tồn Kho Thực Tế & Hạn Mở Nắp
 window.switchInventorySubTab = function(subTab) {
+  if (subTab === 'forecast') subTab = 'stock';
   inventoryState.activeSubTab = subTab;
 
   const btnStock = document.getElementById('inv-subtab-btn-stock');
-  const btnForecast = document.getElementById('inv-subtab-btn-forecast');
   const btnOpenVials = document.getElementById('inv-subtab-btn-openvials');
 
   const contentStock = document.getElementById('inv-content-stock');
-  const contentForecast = document.getElementById('inv-content-forecast');
   const contentOpenVials = document.getElementById('inv-content-openvials');
 
   const activeCls = "flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-sky-700 text-white shadow-sm transition";
   const inactiveCls = "flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition";
 
   if (btnStock) btnStock.className = (subTab === 'stock') ? activeCls : inactiveCls;
-  if (btnForecast) btnForecast.className = (subTab === 'forecast') ? activeCls : inactiveCls;
   if (btnOpenVials) btnOpenVials.className = (subTab === 'openvials') ? activeCls : inactiveCls;
 
   if (contentStock) contentStock.classList.toggle('hidden', subTab !== 'stock');
-  if (contentForecast) contentForecast.classList.toggle('hidden', subTab !== 'forecast');
   if (contentOpenVials) contentOpenVials.classList.toggle('hidden', subTab !== 'openvials');
 
   if (subTab === 'stock') {
     fetchInventoryItems();
-  } else if (subTab === 'forecast') {
-    initForecastDraft();
   } else if (subTab === 'openvials') {
     fetchOpenVials();
   }
