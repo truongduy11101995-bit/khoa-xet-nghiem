@@ -83,7 +83,7 @@ function renderWeeklyScheduleGrid(data) {
 
   // Categories mapping
   const catNames = {
-    'blood': { name: '1. VỊ TRÍ LẤY MÁU NGOẠI TRÚ & NỘI TRÚ (4 BÀN LẤY MÁU)', color: 'bg-rose-50 text-rose-900 border-rose-200' },
+    'blood': { name: '1. VỊ TRÍ LẤY MÁU NGOẠI TRÚ & NỘI TRÚ (2 PHÒNG LẤY MÁU)', color: 'bg-rose-50 text-rose-900 border-rose-200' },
     'machine': { name: '2. VẬN HÀNH PHÒNG MÁY XÉT NGHIỆM (HUYẾT HỌC, SINH HÓA, ĐÔNG MÁU...)', color: 'bg-blue-50 text-blue-900 border-blue-200' },
     'warehouse': { name: '3. QUẢN LÝ KHO HÓA CHẤT & VẬT TƯ TIÊU HAO', color: 'bg-amber-50 text-amber-900 border-amber-200' },
     'quality_2429': { name: '4. QUẢN LÝ SỔ SÁCH & HỒ SƠ CHẤT LƯỢNG (QĐ 2429)', color: 'bg-teal-50 text-teal-900 border-teal-200' },
@@ -147,11 +147,39 @@ function renderWeeklyScheduleGrid(data) {
       `;
     }
 
+    // Warehouse and Quality 2429 are rendered as merged whole-day responsibility rows
+    if (pos.category === 'warehouse' || pos.category === 'quality_2429') {
+      html += `
+        <tr class="hover:bg-slate-50/70 transition">
+          <td class="p-3 border border-slate-200 align-middle bg-white font-medium text-slate-800">
+            <div class="font-bold text-slate-900">${pos.name}</div>
+          </td>
+          <td class="p-2 border border-slate-200 text-center font-bold bg-slate-50/50 text-teal-700">
+            Cả ngày
+          </td>
+          <td colspan="7" class="p-3 border border-slate-200 bg-slate-50/40 text-slate-700 text-xs font-medium leading-relaxed">
+            ${pos.description || ''}
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
     // Determine shifts to show for this position
-    const shifts = (pos.category === 'direct') ? ['truc'] : ['sang', 'chieu'];
+    let shifts = ['sang', 'chieu'];
+    if (pos.category === 'direct') {
+      shifts = ['truc'];
+    } else if (['BLOOD_THUONG_2', 'BLOOD_VIP', 'MACH_1', 'MACH_2'].includes(pos.code)) {
+      shifts = ['sang'];
+    } else if (pos.code === 'MACH_SIGN_PM') {
+      shifts = ['chieu'];
+    }
 
     shifts.forEach((shift, sIdx) => {
-      const shiftName = shift === 'sang' ? 'Sáng' : (shift === 'chieu' ? 'Chiều' : 'Trực 24h');
+      let shiftName = shift === 'sang' ? 'Sáng<br><span class="text-[10px] font-normal text-slate-500">(7h00-11h00)</span>' : (shift === 'chieu' ? 'Chiều<br><span class="text-[10px] font-normal text-slate-500">(13h00-17h00)</span>' : '24/24h');
+      if (pos.code === 'BLOOD_VIP') {
+        shiftName = 'Nguyên ngày<br><span class="text-[10px] font-normal text-slate-500">(7h00-15h00)</span>';
+      }
       const shiftColor = shift === 'sang' ? 'text-sky-700 font-semibold' : (shift === 'chieu' ? 'text-amber-700 font-semibold' : 'text-purple-700 font-bold');
 
       html += `<tr class="hover:bg-slate-50/70 transition">`;
@@ -210,21 +238,27 @@ function renderWeeklyScheduleGrid(data) {
           if (isAssignedOnLeave) {
             html += `<div class="mt-0.5 text-[10px] font-bold text-red-600 leading-tight">⚠️ Trùng lịch nghỉ!</div>`;
           }
+          if (assignment && assignment.note) {
+            html += `<div class="mt-0.5 text-[10px] italic text-slate-500 leading-tight">(${assignment.note})</div>`;
+          }
         } else {
           // Regular view
           if (assignment) {
+            const noteHtml = assignment.note ? `<div class="mt-0.5 text-[10px] italic text-slate-500 leading-tight">(${assignment.note})</div>` : '';
             if (isMyCell) {
               html += `
                 <div class="py-1 px-1.5 bg-sky-600 text-white rounded font-bold text-xs shadow-sm flex items-center justify-center gap-1">
                   <span>★</span>
                   <span>${assignment.full_name}</span>
                 </div>
+                ${noteHtml}
               `;
             } else {
               html += `
                 <div class="py-1 px-1.5 bg-slate-100 text-slate-800 rounded font-medium text-xs truncate" title="${assignment.full_name}">
                   ${assignment.full_name}
                 </div>
+                ${noteHtml}
               `;
             }
           } else {

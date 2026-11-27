@@ -265,7 +265,7 @@ def export_schedule_excel(
     positions = [dict(p) for p in cursor.fetchall()]
 
     cursor.execute("""
-        SELECT s.work_date, s.shift, s.position_id, u.full_name
+        SELECT s.work_date, s.shift, s.position_id, s.note, u.full_name
         FROM schedules s
         JOIN users u ON s.user_id = u.id
         WHERE s.work_date >= ? AND s.work_date <= ?
@@ -275,7 +275,8 @@ def export_schedule_excel(
 
     sched_map = {}
     for r in sched_rows:
-        sched_map[f"{r['position_id']}_{r['work_date']}_{r['shift']}"] = r["full_name"]
+        note_str = f"\n({r['note']})" if r["note"] else ""
+        sched_map[f"{r['position_id']}_{r['work_date']}_{r['shift']}"] = f"{r['full_name']}{note_str}"
 
     # Build workbook
     wb = openpyxl.Workbook()
@@ -343,7 +344,7 @@ def export_schedule_excel(
     # Shift sub-row or indicators
     row_idx = 7
     cat_names = {
-        "blood": "1. VỊ TRÍ LẤY MÁU NGOẠI TRÚ & NỘI TRÚ (4 BÀN LẤY MÁU)",
+        "blood": "1. VỊ TRÍ LẤY MÁU NGOẠI TRÚ & NỘI TRÚ (2 PHÒNG LẤY MÁU)",
         "machine": "2. VẬN HÀNH PHÒNG MÁY XÉT NGHIỆM (HUYẾT HỌC, SINH HÓA, ĐÔNG MÁU...)",
         "warehouse": "3. QUẢN LÝ KHO HÓA CHẤT & VẬT TƯ TIÊU HAO",
         "quality_2429": "4. QUẢN LÝ SỔ SÁCH & HỒ SƠ CHẤT LƯỢNG THEO QĐ 2429",
@@ -365,32 +366,39 @@ def export_schedule_excel(
                 ws.cell(row=row_idx, column=col).border = thin_border
             row_idx += 1
 
-        # Morning shift row
-        ws.cell(row=row_idx, column=1, value=p["name"]).font = font_bold
-        ws.cell(row=row_idx, column=1).alignment = align_left
-        ws.cell(row=row_idx, column=2, value="Sáng").font = font_regular
-        ws.cell(row=row_idx, column=2).alignment = align_center
+        if p["category"] in ("warehouse", "quality_2429"):
+            ws.cell(row=row_idx, column=1, value=p["name"]).font = font_bold
+            ws.cell(row=row_idx, column=1).alignment = align_left
+            ws.cell(row=row_idx, column=2, value="Cả ngày").font = font_regular
+            ws.cell(row=row_idx, column=2).alignment = align_center
+            ws.merge_cells(f"C{row_idx}:I{row_idx}")
+            ws.cell(row=row_idx, column=3, value=p.get("description") or "").font = font_regular
+            ws.cell(row=row_idx, column=3).alignment = align_left
+            for col in range(1, 10):
+                ws.cell(row=row_idx, column=col).border = thin_border
+            row_idx += 1
+            continue
 
-        for day_i, d in enumerate(week_dates):
-            d_str = d.strftime("%Y-%m-%d")
-            assigned_name = sched_map.get(f"{p['id']}_{d_str}_sang", "")
-            cell = ws.cell(row=row_idx, column=3 + day_i, value=assigned_name)
-            cell.font = font_regular
-            cell.alignment = align_center
+        if p["category"] == "direct":
+            shifts_for_pos = [("truc", "24/24h")]
+        elif p["code"] in ("BLOOD_THUONG_2", "MACH_1", "MACH_2"):
+            shifts_for_pos = [("sang", "Sáng\n(7h00 - 11h00)")]
+        elif p["code"] == "BLOOD_VIP":
+            shifts_for_pos = [("sang", "Nguyên ngày\n(7h00 - 15h00)")]
+        elif p["code"] == "MACH_SIGN_PM":
+            shifts_for_pos = [("chieu", "Chiều\n(13h00 - 17h00)")]
+        else:
+            shifts_for_pos = [("sang", "Sáng\n(7h00 - 11h00)"), ("chieu", "Chiều\n(13h00 - 17h00)")]
 
-        for col in range(1, 10):
-            ws.cell(row=row_idx, column=col).border = thin_border
-        row_idx += 1
-
-        # Afternoon shift row (skip for direct night shift)
-        if p["category"] != "direct":
-            ws.cell(row=row_idx, column=1, value="")
-            ws.cell(row=row_idx, column=2, value="Chiều").font = font_regular
+        for s_i, (shift_code, shift_label) in enumerate(shifts_for_pos):
+            ws.cell(row=row_idx, column=1, value=p["name"] if s_i == 0 else "").font = font_bold
+            ws.cell(row=row_idx, column=1).alignment = align_left
+            ws.cell(row=row_idx, column=2, value=shift_label).font = font_regular
             ws.cell(row=row_idx, column=2).alignment = align_center
 
             for day_i, d in enumerate(week_dates):
                 d_str = d.strftime("%Y-%m-%d")
-                assigned_name = sched_map.get(f"{p['id']}_{d_str}_chieu", "")
+                assigned_name = sched_map.get(f"{p['id']}_{d_str}_{shift_code}", "")
                 cell = ws.cell(row=row_idx, column=3 + day_i, value=assigned_name)
                 cell.font = font_regular
                 cell.alignment = align_center

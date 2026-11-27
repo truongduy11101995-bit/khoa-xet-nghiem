@@ -196,6 +196,7 @@ def _init_postgres_db():
     _seed_sample_schedules(cursor)
     _sync_real_inventory_20261125(cursor)
     _sync_staff_list_20261127(cursor)
+    _sync_schedule_template_20261127(cursor)
 
     conn.commit()
     conn.close()
@@ -359,6 +360,8 @@ def _init_sqlite_db():
     _seed_employee_files_from_disk(cursor)
     _sync_real_inventory_20261125(cursor)
     _sync_staff_list_20261127(cursor)
+    _sync_schedule_template_20261127(cursor)
+    _sync_schedule_template_20261127(cursor)
 
     conn.commit()
     conn.close()
@@ -506,6 +509,149 @@ def _sync_staff_list_20261127(cursor):
         """)
     except Exception as e:
         print("Sync staff list warning:", e)
+
+def _sync_schedule_template_20261127(cursor):
+    """One-time sync: update positions and seed weekly roster matching the department Excel template."""
+    try:
+        cursor.execute("SELECT version FROM qaqc_store WHERE store_key = 'schedule_sync_20261127'")
+        row = cursor.fetchone()
+        if row and (dict(row).get("version") if hasattr(row, "keys") else row[0]) == "20261127_v1":
+            return
+
+        cursor.execute("DELETE FROM schedules")
+        cursor.execute("DELETE FROM positions")
+
+        new_positions = [
+            ("BLOOD_THUONG_1", "Phòng lấy máu Thường (Vị trí 1)", "blood", "(Xoay tua | Sáng: 1–2 vị trí | Chiều: 1 vị trí)", 1),
+            ("BLOOD_THUONG_2", "Phòng lấy máu Thường (Vị trí 2 - Sáng)", "blood", "(Xoay tua | Tăng cường buổi Sáng 7h00 - 11h00)", 2),
+            ("BLOOD_VIP", "Phòng lấy máu VIP / Cấp cứu", "blood", "(Xoay tua 1 vị trí cả ngày 7h00 - 15h00)", 3),
+            ("MACH_1", "Phòng máy 1", "machine", "(Xoay tua toàn khoa | Sáng 7h00 - 11h00)", 10),
+            ("MACH_2", "Phòng máy 2", "machine", "(Xoay tua toàn khoa | Sáng 7h00 - 11h00)", 11),
+            ("MACH_SIGN_PM", "Vị trí ký tên 1 – Chiều", "machine", "(Xoay tua toàn khoa | Chiều 13h00 - 17h00)", 12),
+            ("WAREHOUSE", "Kho Hóa chất & Vật tư tiêu hao", "warehouse", "CN. Lê Đình Tú & CN. Nguyễn Trường Duy kiểm kê tồn kho hàng ngày; dự trù hóa chất, vật tư phòng máy vào Thứ Năm", 20),
+            ("QUALITY_2429", "Quản lý Sổ sách & Hồ sơ QĐ 2429", "quality_2429", "CN. Nguyễn Trường Duy phụ trách chung hồ sơ QLCL 2429; nhân sự đứng vị trí phòng máy chịu trách nhiệm ký sổ IQC/EQA, vận hành thiết bị và trả kết quả trong ca", 30),
+            ("ON_DUTY", "Thường trực cấp cứu 24h", "direct", "Trực thường trực cấp cứu & trực đêm 24/24h", 40),
+        ]
+        cursor.executemany("""
+            INSERT INTO positions (code, name, category, description, sort_order)
+            VALUES (?, ?, ?, ?, ?)
+        """, new_positions)
+
+        cursor.execute("SELECT id, code FROM positions")
+        pos_map = {}
+        for r in cursor.fetchall():
+            d = dict(r) if hasattr(r, "keys") else {"id": r[0], "code": r[1]}
+            pos_map[d["code"]] = d["id"]
+
+        cursor.execute("SELECT id, username FROM users")
+        user_map = {}
+        for r in cursor.fetchall():
+            d = dict(r) if hasattr(r, "keys") else {"id": r[0], "username": r[1]}
+            user_map[d["username"]] = d["id"]
+
+        import datetime as _dt
+        weekly_pattern = {
+            ("BLOOD_THUONG_1", "sang"): [
+                ("le_phat_dai", ""),
+                ("ly_thi_my_loan", ""),
+                ("ly_thi_my_loan", "CN. Lê Phát Đại nghỉ"),
+                ("phan_ngoc_nhu", ""),
+                ("le_dinh_tu", ""),
+                ("nguyen_truong_duy", ""),
+                ("phan_ngoc_nhu", ""),
+            ],
+            ("BLOOD_THUONG_2", "sang"): [
+                ("truong_huynh_anh_thu", ""),
+                ("tong_mong_tien", ""),
+                (None, ""),
+                ("tong_mong_tien", ""),
+                ("truong_huynh_anh_thu", ""),
+                ("ly_thi_my_loan", ""),
+                ("truong_huynh_anh_thu", ""),
+            ],
+            ("BLOOD_THUONG_1", "chieu"): [
+                ("le_phat_dai", ""),
+                ("ly_thi_my_loan", ""),
+                ("ly_thi_my_loan", ""),
+                ("tong_mong_tien", ""),
+                ("truong_huynh_anh_thu", ""),
+                ("nguyen_truong_duy", ""),
+                ("truong_huynh_anh_thu", ""),
+            ],
+            ("BLOOD_VIP", "sang"): [
+                ("tong_mong_tien", ""),
+                ("le_phat_dai", ""),
+                ("truong_huynh_anh_thu", ""),
+                ("ly_thi_my_loan", ""),
+                ("nguyen_truong_duy", ""),
+                ("le_dinh_tu", ""),
+                ("le_dinh_tu", ""),
+            ],
+            ("MACH_1", "sang"): [
+                ("le_dinh_tu", ""),
+                ("nguyen_truong_duy", ""),
+                ("phan_ngoc_nhu", ""),
+                ("le_dinh_tu", ""),
+                ("phan_ngoc_nhu", ""),
+                ("phan_ngoc_nhu", ""),
+                ("nguyen_truong_duy", ""),
+            ],
+            ("MACH_2", "sang"): [
+                ("ly_thi_my_loan", ""),
+                ("truong_huynh_anh_thu", ""),
+                ("tong_mong_tien", ""),
+                ("le_phat_dai", ""),
+                ("tong_mong_tien", ""),
+                ("truong_huynh_anh_thu", ""),
+                ("ly_thi_my_loan", ""),
+            ],
+            ("MACH_SIGN_PM", "chieu"): [
+                ("nguyen_truong_duy", ""),
+                ("phan_ngoc_nhu", ""),
+                ("le_dinh_tu", ""),
+                ("nguyen_truong_duy", ""),
+                ("le_phat_dai", ""),
+                ("le_phat_dai", ""),
+                ("tong_mong_tien", ""),
+            ],
+            ("ON_DUTY", "truc"): [
+                ("le_dinh_tu", "Ra trực sáng T3"),
+                ("nguyen_truong_duy", "Ra trực sáng T4"),
+                ("truong_huynh_anh_thu", "Ra trực sáng T5"),
+                ("ly_thi_my_loan", "Ra trực sáng T6"),
+                ("tong_mong_tien", "Ra trực sáng T7"),
+                ("le_phat_dai", "Ra trực sáng CN"),
+                ("phan_ngoc_nhu", "Trực Chủ Nhật"),
+            ],
+        }
+
+        week_mondays = ["2026-11-23", "2026-11-30", "2026-12-07", "2026-12-14"]
+        rows_to_insert = []
+        for mon_str in week_mondays:
+            mon_dt = _dt.datetime.strptime(mon_str, "%Y-%m-%d").date()
+            for day_idx in range(7):
+                d_str = (mon_dt + _dt.timedelta(days=day_idx)).strftime("%Y-%m-%d")
+                for (pos_code, shift_name), day_list in weekly_pattern.items():
+                    uname, note_txt = day_list[day_idx]
+                    if not uname or uname not in user_map or pos_code not in pos_map:
+                        continue
+                    rows_to_insert.append((d_str, shift_name, pos_map[pos_code], user_map[uname], note_txt))
+
+        cursor.executemany("""
+            INSERT INTO schedules (work_date, shift, position_id, user_id, note)
+            VALUES (?, ?, ?, ?, ?)
+        """, rows_to_insert)
+
+        cursor.execute("""
+            INSERT INTO qaqc_store (store_key, data_json, version, updated_by)
+            VALUES ('schedule_sync_20261127', '{"positions": 9}', '20261127_v1', 'system')
+            ON CONFLICT(store_key) DO UPDATE SET
+                data_json = excluded.data_json,
+                version = excluded.version,
+                updated_at = CURRENT_TIMESTAMP
+        """)
+    except Exception as e:
+        print("Sync schedule template warning:", e)
 
 def _seed_users(cursor):
     """Seed the 4 personnel of the department."""
