@@ -195,6 +195,7 @@ def _init_postgres_db():
     _seed_positions(cursor)
     _seed_sample_schedules(cursor)
     _sync_real_inventory_20261125(cursor)
+    _sync_staff_list_20261127(cursor)
 
     conn.commit()
     conn.close()
@@ -357,6 +358,7 @@ def _init_sqlite_db():
     _seed_documents_from_disk(cursor)
     _seed_employee_files_from_disk(cursor)
     _sync_real_inventory_20261125(cursor)
+    _sync_staff_list_20261127(cursor)
 
     conn.commit()
     conn.close()
@@ -435,6 +437,69 @@ def _sync_real_inventory_20261125(cursor):
         """)
     except Exception as e:
         print("Sync real inventory warning:", e)
+
+def _sync_staff_list_20261127(cursor):
+    """One-time sync: add 3 new staff members (total 7) and update phone numbers."""
+    try:
+        cursor.execute("SELECT version FROM qaqc_store WHERE store_key = 'staff_sync_20261127'")
+        row = cursor.fetchone()
+        if row and (dict(row).get("version") if hasattr(row, "keys") else row[0]) == "20261127_7staff":
+            return
+
+        phone_updates = [
+            ("0911761707", "le_dinh_tu"),
+            ("0327087363", "nguyen_truong_duy"),
+            ("0389948626", "le_phat_dai"),
+            ("0325858123", "tong_mong_tien"),
+        ]
+        for phone, uname in phone_updates:
+            cursor.execute(
+                "UPDATE users SET phone = ?, status = 'active', updated_at = CURRENT_TIMESTAMP WHERE username = ?",
+                (phone, uname),
+            )
+
+        default_pw = hash_password("123456")
+        new_staff = [
+            (
+                "ly_thi_my_loan", default_pw, "Lý Thị Mỹ Loan",
+                "Nhân viên Khoa Xét Nghiệm", "ktv", "Ly_Thi_My_Loan",
+                "2001", "0364740976", "loan.lythimy@thienanhospital.vn",
+                "", "", "", "", "Size đồng phục: M nữ"
+            ),
+            (
+                "truong_huynh_anh_thu", default_pw, "Trương Huỳnh Anh Thư",
+                "Thư ký y khoa", "ktv", "Truong_Huynh_Anh_Thu",
+                "2000", "03773030260", "thu.truonghuynhanh@thienanhospital.vn",
+                "", "", "", "", "Thư ký y khoa • Size đồng phục: M nữ • Nhận đồ rồi"
+            ),
+            (
+                "phan_ngoc_nhu", default_pw, "Phan Ngọc Như",
+                "Thư ký y khoa", "ktv", "Phan_Ngoc_Nhu",
+                "1995", "0399496533", "nhu.phanngoc@thienanhospital.vn",
+                "", "", "", "", "Thư ký y khoa • Size đồng phục: L nữ • Nhận đồ rồi"
+            ),
+        ]
+
+        for member in new_staff:
+            cursor.execute("SELECT id FROM users WHERE username = ?", (member[0],))
+            if not cursor.fetchone():
+                cursor.execute("""
+                    INSERT INTO users (
+                        username, password_hash, full_name, title, role, folder_name,
+                        dob, phone, email, cchn, cchn_date, cchn_scope, education, specialty
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, member)
+
+        cursor.execute("""
+            INSERT INTO qaqc_store (store_key, data_json, version, updated_by)
+            VALUES ('staff_sync_20261127', '{"count": 7}', '20261127_7staff', 'system')
+            ON CONFLICT(store_key) DO UPDATE SET
+                data_json = excluded.data_json,
+                version = excluded.version,
+                updated_at = CURRENT_TIMESTAMP
+        """)
+    except Exception as e:
+        print("Sync staff list warning:", e)
 
 def _seed_users(cursor):
     """Seed the 4 personnel of the department."""

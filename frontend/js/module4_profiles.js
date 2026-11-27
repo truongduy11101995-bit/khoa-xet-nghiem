@@ -41,7 +41,7 @@ function renderProfilesGrid(profiles, isAdmin, currentUserId) {
             <h4 class="text-sm font-extrabold text-slate-900 uppercase">Bảng Tổng Hợp Trạng Thái Bổ Sung Thông Tin Cán Bộ</h4>
           </div>
           <span class="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-200">
-            4/4 Cán bộ đã khai báo đầy đủ thông tin hành chính
+            ${profiles.length}/${profiles.length} Cán bộ đã khai báo thông tin hành chính
           </span>
         </div>
         <div class="overflow-x-auto">
