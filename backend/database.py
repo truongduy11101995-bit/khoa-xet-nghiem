@@ -443,7 +443,8 @@ def _sync_staff_list_20261127(cursor):
     try:
         cursor.execute("SELECT version FROM qaqc_store WHERE store_key = 'staff_sync_20261127'")
         row = cursor.fetchone()
-        if row and (dict(row).get("version") if hasattr(row, "keys") else row[0]) == "20261127_7staff":
+        current_ver = (dict(row).get("version") if hasattr(row, "keys") else row[0]) if row else None
+        if current_ver == "20261127_7staff_ktv":
             return
 
         phone_updates = [
@@ -462,21 +463,21 @@ def _sync_staff_list_20261127(cursor):
         new_staff = [
             (
                 "ly_thi_my_loan", default_pw, "Lý Thị Mỹ Loan",
-                "Nhân viên Khoa Xét Nghiệm", "ktv", "Ly_Thi_My_Loan",
+                "Kỹ Thuật Viên Xét Nghiệm", "ktv", "Ly_Thi_My_Loan",
                 "2001", "0364740976", "loan.lythimy@thienanhospital.vn",
                 "", "", "", "", "Size đồng phục: M nữ"
             ),
             (
                 "truong_huynh_anh_thu", default_pw, "Trương Huỳnh Anh Thư",
-                "Thư ký y khoa", "ktv", "Truong_Huynh_Anh_Thu",
+                "Kỹ Thuật Viên Xét Nghiệm", "ktv", "Truong_Huynh_Anh_Thu",
                 "2000", "03773030260", "thu.truonghuynhanh@thienanhospital.vn",
-                "", "", "", "", "Thư ký y khoa • Size đồng phục: M nữ • Nhận đồ rồi"
+                "", "", "", "", "Size đồng phục: M nữ • Nhận đồ rồi"
             ),
             (
                 "phan_ngoc_nhu", default_pw, "Phan Ngọc Như",
-                "Thư ký y khoa", "ktv", "Phan_Ngoc_Nhu",
+                "Kỹ Thuật Viên Xét Nghiệm", "ktv", "Phan_Ngoc_Nhu",
                 "1995", "0399496533", "nhu.phanngoc@thienanhospital.vn",
-                "", "", "", "", "Thư ký y khoa • Size đồng phục: L nữ • Nhận đồ rồi"
+                "", "", "", "", "Size đồng phục: L nữ • Nhận đồ rồi"
             ),
         ]
 
@@ -489,10 +490,15 @@ def _sync_staff_list_20261127(cursor):
                         dob, phone, email, cchn, cchn_date, cchn_scope, education, specialty
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, member)
+            else:
+                cursor.execute(
+                    "UPDATE users SET title = ?, specialty = ?, status = 'active', updated_at = CURRENT_TIMESTAMP WHERE username = ?",
+                    (member[3], member[13], member[0]),
+                )
 
         cursor.execute("""
             INSERT INTO qaqc_store (store_key, data_json, version, updated_by)
-            VALUES ('staff_sync_20261127', '{"count": 7}', '20261127_7staff', 'system')
+            VALUES ('staff_sync_20261127', '{"count": 7}', '20261127_7staff_ktv', 'system')
             ON CONFLICT(store_key) DO UPDATE SET
                 data_json = excluded.data_json,
                 version = excluded.version,
